@@ -18,10 +18,14 @@ import java.time.LocalDate;
 @Getter
 public class UserModel extends BaseEntity {
 
+    @Column(unique = true, nullable = false, length = 10)
     private String userId;
+    @Column(nullable = false)
     private String emil;
     @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
     private Gender gender;
+    @Column(nullable = false)
     private LocalDate birthday;
 
     @Builder
