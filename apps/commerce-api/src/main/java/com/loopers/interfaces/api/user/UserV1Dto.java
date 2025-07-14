@@ -19,7 +19,7 @@ public class UserV1Dto {
         private String gender;
         private String birthday;
 
-        public SignupRequest(String id, String email, @NotBlank String gender, String birthday) {
+        public SignupRequest(String id, String email, String gender, String birthday) {
             this.id = id;
             this.email = email;
             this.gender = gender;
