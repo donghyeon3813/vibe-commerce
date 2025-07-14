@@ -2,6 +2,7 @@ package com.loopers.interfaces.api.user;
 
 import com.loopers.application.user.UserInfo;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
 import lombok.Getter;
 
 public class UserV1Dto {
@@ -15,6 +16,7 @@ public class UserV1Dto {
     public static class SignupRequest {
         private String id;
         private String email;
+        @Pattern(regexp = "MALE|FEMALE", message = "성별은 MALE 또는 FEMALE 중 하나여야 합니다.")
         @NotBlank
         private String gender;
         private String birthday;
