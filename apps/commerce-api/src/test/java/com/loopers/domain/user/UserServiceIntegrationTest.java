@@ -5,14 +5,14 @@ import com.loopers.interfaces.api.user.UserV1Dto;
 import com.loopers.support.error.CoreException;
 import com.loopers.support.error.ErrorType;
 import com.loopers.utils.DatabaseCleanUp;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Nested;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
+import java.time.LocalDate;
+
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 @SpringBootTest
@@ -56,6 +56,49 @@ public class UserServiceIntegrationTest {
             UserModel user = userService.createUser(signupRequest);
 
             assertThat(user.getId()).isNotNull();
+        }
+    }
+
+    @DisplayName("회원 정보를 조회할때")
+    @Nested
+    class Info {
+        @BeforeEach
+        void init() {
+            UserModel userModel = UserModel.CreateUser("test9999", "test@test.com", Gender.MALE.name(), "2025-07-13");
+            userJpaRepository.save(userModel);
+
+        }
+
+        @DisplayName("해당 ID의 회원 정보가 존재할 경우, 회원 정보가 반환된다.")
+        @Test
+        void returnsUserInfo_whenSuccessProvided() {
+            String userId = "test9999";
+            String email = "test@test.com";
+            Gender gender = Gender.MALE;
+            LocalDate birthday = LocalDate.of(2025, 7, 13);
+
+            UserModel userModel = userService.getUser(userId);
+            assertAll(
+                    () -> assertThat(userModel).isNotNull(),
+                    () -> assertThat(userModel.getUserId()).isEqualTo(userId),
+                    () -> assertThat(userModel.getEmil()).isEqualTo(email),
+                    () -> assertThat(userModel.getGender()).isEqualTo(gender),
+                    () -> assertThat(userModel.getBirthday()).isEqualTo(birthday)
+            );
+
+            assertThat(userModel.getUserId()).isEqualTo(userId);
+
+        }
+
+        @DisplayName("해당 ID의 회원 정보가 존재하지 않을 경우, NULL을 반환한다.")
+        @Test
+        void returnsNull_whenInvalidInputProvided() {
+            String userId = "test9998";
+
+            UserModel userModel = userService.getUser(userId);
+
+            assertThat(userModel).isNull();
+
         }
     }
 

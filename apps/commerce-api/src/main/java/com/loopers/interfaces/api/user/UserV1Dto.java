@@ -28,4 +28,10 @@ public class UserV1Dto {
             this.birthday = birthday;
         }
     }
+
+    public record UserInfoResponse(String id, String email, String gender, String birthday) {
+        public static UserInfoResponse from(UserInfo info) {
+            return new UserInfoResponse(info.id(), info.email(), info.gender(), info.birthday());
+        }
+    }
 }
