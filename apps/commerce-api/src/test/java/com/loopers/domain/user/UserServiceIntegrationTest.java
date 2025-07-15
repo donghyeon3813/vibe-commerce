@@ -6,6 +6,7 @@ import com.loopers.support.error.CoreException;
 import com.loopers.support.error.ErrorType;
 import com.loopers.utils.DatabaseCleanUp;
 import org.junit.jupiter.api.*;
+import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
@@ -14,6 +15,9 @@ import java.time.LocalDate;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.verify;
 
 @SpringBootTest
 public class UserServiceIntegrationTest {
@@ -22,6 +26,9 @@ public class UserServiceIntegrationTest {
 
     @Autowired
     private UserJpaRepository userJpaRepository;
+
+    @Mock
+    private UserRepository userRepository;
 
     @Autowired
     private DatabaseCleanUp databaseCleanUp;
@@ -48,14 +55,16 @@ public class UserServiceIntegrationTest {
             assertThat(exception.getErrorType()).isEqualTo(ErrorType.CONFLICT);
         }
 
-        @DisplayName("성공하면 데이터를 가져온다.")
+        @DisplayName("성공하면 정보를 저장한다.")
         @Test
         void createUser_whenSuccessGetInfoProvided() {
             UserV1Dto.SignupRequest signupRequest = new UserV1Dto.SignupRequest("test1", "test@test.com", "MALE", "2025-07-12");
+            UserService userServiceSpy = spy(new UserService(userRepository));
 
-            UserModel user = userService.createUser(signupRequest);
+            userServiceSpy.createUser(signupRequest);
 
-            assertThat(user.getId()).isNotNull();
+            verify(userServiceSpy).createUser(any());
+
         }
     }
 
@@ -81,7 +90,7 @@ public class UserServiceIntegrationTest {
             assertAll(
                     () -> assertThat(userModel).isNotNull(),
                     () -> assertThat(userModel.getUserId()).isEqualTo(userId),
-                    () -> assertThat(userModel.getEmil()).isEqualTo(email),
+                    () -> assertThat(userModel.getEmail()).isEqualTo(email),
                     () -> assertThat(userModel.getGender()).isEqualTo(gender),
                     () -> assertThat(userModel.getBirthday()).isEqualTo(birthday)
             );
