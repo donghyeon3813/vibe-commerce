@@ -3,6 +3,8 @@ package com.loopers.application.user;
 import com.loopers.domain.user.UserModel;
 import com.loopers.domain.user.UserService;
 import com.loopers.interfaces.api.user.UserV1Dto;
+import com.loopers.support.error.CoreException;
+import com.loopers.support.error.ErrorType;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -16,4 +18,15 @@ public class UserFacade {
         return UserInfo.create(user);
     }
 
+    public UserInfo getUser(String userId) {
+
+        if (userId == null) {
+            throw new CoreException(ErrorType.NOT_FOUND, "존재하지 않는 유저입니다.");
+        }
+        UserModel user = userService.getUser(userId);
+        if (user == null) {
+            throw new CoreException(ErrorType.NOT_FOUND, "존재하지 않는 유저입니다.");
+        }
+        return UserInfo.create(user);
+    }
 }

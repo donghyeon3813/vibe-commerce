@@ -27,4 +27,9 @@ public class UserService {
                 signupRequest.getBirthday());
         return userRepository.save(userModel);
     }
+
+    public UserModel getUser(String userId) {
+
+        return userRepository.findByUserId(userId);
+    }
 }

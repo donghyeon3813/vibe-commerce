@@ -15,4 +15,14 @@ public interface UserV1ApiSpec {
             @Schema(name = "id: test1, 이메일:test@test.com, 성별: MAIL, 생일:2025-07-12")
             UserV1Dto.SignupRequest signupRequest
     );
+
+    @Operation(
+            summary = "회원 정보 조회",
+            description = "헤더에 X-USER-ID를 통해 회원 정보를 가져옵니다."
+    )
+    ApiResponse<UserV1Dto.UserInfoResponse> getUserInfo(
+            @Schema(name = "header 의 X-USER-ID 값을 받아옵니다.")
+            String userId
+    );
+
 }

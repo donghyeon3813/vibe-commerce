@@ -5,10 +5,7 @@ import com.loopers.application.user.UserInfo;
 import com.loopers.interfaces.api.ApiResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RequiredArgsConstructor
 @RestController
@@ -24,4 +21,14 @@ public class UserV1Controller implements UserV1ApiSpec {
         UserV1Dto.UserCreateResponse response = UserV1Dto.UserCreateResponse.from(userInfo);
         return ApiResponse.success(response);
     }
+
+    @GetMapping("me")
+    @Override
+    public ApiResponse<UserV1Dto.UserInfoResponse> getUserInfo(@RequestHeader(value = "X-USER-ID", required = false) String userId) {
+        UserInfo userInfo = userFacade.getUser(userId);
+        UserV1Dto.UserInfoResponse response = UserV1Dto.UserInfoResponse.from(userInfo);
+        return ApiResponse.success(response);
+    }
+
+
 }
