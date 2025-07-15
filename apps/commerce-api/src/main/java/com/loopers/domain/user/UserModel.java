@@ -21,7 +21,7 @@ public class UserModel extends BaseEntity {
     @Column(unique = true, nullable = false, length = 10)
     private String userId;
     @Column(nullable = false)
-    private String emil;
+    private String email;
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private Gender gender;
@@ -29,9 +29,9 @@ public class UserModel extends BaseEntity {
     private LocalDate birthday;
 
     @Builder
-    protected UserModel(String userId, String emil, Gender gender, LocalDate birthday) {
+    protected UserModel(String userId, String email, Gender gender, LocalDate birthday) {
         this.userId = userId;
-        this.emil = emil;
+        this.email = email;
         this.gender = gender;
         this.birthday = birthday;
     }
@@ -43,7 +43,7 @@ public class UserModel extends BaseEntity {
 
         return UserModel.builder()
                 .userId(id)
-                .emil(email)
+                .email(email)
                 .gender(Gender.getGender(gender))
                 .birthday(birthday)
                 .build();

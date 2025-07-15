@@ -34,7 +34,7 @@ class UserModelTest {
             assertAll(
                     () -> assertThat(userModel.getId()).isNotNull(),
                     () -> assertThat(userModel.getUserId()).isEqualTo(id),
-                    () -> assertThat(userModel.getEmil()).isEqualTo(email),
+                    () -> assertThat(userModel.getEmail()).isEqualTo(email),
                     () -> assertThat(userModel.getBirthday()).isEqualTo(birthDay),
                     () -> assertThat(userModel.getGender()).isEqualTo(Gender.valueOf(gender))
             );
