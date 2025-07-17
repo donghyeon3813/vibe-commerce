@@ -86,4 +86,65 @@ public class PointV1ApiE2ETest {
         }
     }
 
+    @DisplayName("POST /api/v1/points/charge")
+    @Nested
+    class Charge {
+        @BeforeEach
+        void init() {
+            UserModel userModel = UserModel.CreateUser("test9999", "test@test.com", Gender.MALE.name(), "2025-07-13");
+            UserModel saveUser = userJpaRepository.save(userModel);
+            PointModel pointModel = PointModel.createPointModel(saveUser.getId(), 100);
+            pointJpaRepostiroy.save(pointModel);
+        }
+
+        @DisplayName("존재하는 유저가 1000월을 충전할 경우, 충전된 보유 총량을 응답으로 반환한다.")
+        @Test
+        void returnsPointCharges_whenPointInquirySucceeds() {
+            String userId = "test9999";
+            int point = 100;
+            int chargePoint = 1000;
+            String request = """
+                    {
+                      "chargePoint": 1000
+                    }
+                    """;
+            HttpHeaders headers = new HttpHeaders();
+            headers.set("X-USER-ID", userId);
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            HttpEntity<String> httpEntity = new HttpEntity<>(request, headers);
+            String requestUrl = POINT_ENDPOINT + "/charge";
+
+            ParameterizedTypeReference<ApiResponse<PointV1Dto.PointChargeResponse>> responseType = new ParameterizedTypeReference<>() {
+            };
+            ResponseEntity<ApiResponse<PointV1Dto.PointChargeResponse>> response =
+                    testRestTemplate.exchange(requestUrl, HttpMethod.POST, httpEntity, responseType);
+            assertAll(
+                    () -> assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK),
+                    () -> assertThat(response.getBody().data().point()).isEqualTo(point + chargePoint)
+            );
+        }
+
+        @DisplayName("존재하지 않는 유저로 요청할 경우, 404 Not Found 응답을 반환한다.")
+        @Test
+        void throwsException_whenUserNotFound() {
+            String userId = "test9998";
+            String request = """
+                    {
+                      "chargePoint": 1000
+                    }
+                    """;
+            HttpHeaders headers = new HttpHeaders();
+            headers.set("X-USER-ID", userId);
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            HttpEntity<String> httpEntity = new HttpEntity<>(request, headers);
+            String requestUrl = POINT_ENDPOINT + "/charge";
+
+            ParameterizedTypeReference<ApiResponse<PointV1Dto.PointChargeResponse>> responseType = new ParameterizedTypeReference<>() {
+            };
+            ResponseEntity<ApiResponse<PointV1Dto.PointChargeResponse>> response =
+                    testRestTemplate.exchange(requestUrl, HttpMethod.POST, httpEntity, responseType);
+            assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
+        }
+    }
+
 }
