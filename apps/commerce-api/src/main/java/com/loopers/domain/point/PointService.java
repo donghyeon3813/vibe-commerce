@@ -1,5 +1,6 @@
 package com.loopers.domain.point;
 
+import com.loopers.application.point.PointCreateInfo;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -12,5 +13,10 @@ public class PointService {
     public PointModel getPointInfo(Long userUid) {
 
         return pointRepository.findByUserUid(userUid);
+    }
+
+    public PointModel createPoint(PointCreateInfo info) {
+        PointModel pointModel = PointModel.createPointModel(info.getUserId(), info.getPoint());
+        return pointRepository.save(pointModel);
     }
 }
