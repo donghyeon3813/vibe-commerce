@@ -15,4 +15,13 @@ public interface PointV1ApiSpec {
             @Schema(name = "header 의 X-USER-ID 값을 받아옵니다.")
             String userId
     );
+
+    @Operation(
+            summary = "포인트 충전",
+            description = "입력된 포인트를 충전합니다."
+    )
+    ApiResponse<PointV1Dto.PointChargeResponse> chargePoint(
+            @Schema(name = "userId와 충전될 포인트를 입력합니다.")
+            ChargePointRequest request, String userUid
+    );
 }

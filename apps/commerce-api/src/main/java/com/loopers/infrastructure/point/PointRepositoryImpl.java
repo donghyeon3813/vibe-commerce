@@ -14,4 +14,9 @@ public class PointRepositoryImpl implements PointRepository {
     public PointModel findByUserUid(Long userUid) {
         return pointJpaRepostiroy.findByUserUid(userUid);
     }
+
+    @Override
+    public PointModel save(PointModel pointModel) {
+        return pointJpaRepostiroy.save(pointModel);
+    }
 }
