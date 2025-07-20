@@ -7,6 +7,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
+import static com.loopers.support.error.HeaderConstants.X_USER_ID;
+
 @RequiredArgsConstructor
 @RestController
 @RequestMapping("/api/v1/users")
@@ -22,9 +24,9 @@ public class UserV1Controller implements UserV1ApiSpec {
         return ApiResponse.success(response);
     }
 
-    @GetMapping("me")
+    @GetMapping("/me")
     @Override
-    public ApiResponse<UserV1Dto.UserInfoResponse> getUserInfo(@RequestHeader(value = "X-USER-ID", required = false) String userId) {
+    public ApiResponse<UserV1Dto.UserInfoResponse> getUserInfo(@RequestHeader(value = X_USER_ID, required = false) String userId) {
         UserInfo userInfo = userFacade.getUser(userId);
         UserV1Dto.UserInfoResponse response = UserV1Dto.UserInfoResponse.from(userInfo);
         return ApiResponse.success(response);

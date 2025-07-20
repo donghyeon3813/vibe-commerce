@@ -17,12 +17,15 @@ public class PointModel extends BaseEntity {
     private Long userUid;
     private int point;
 
-    protected PointModel(Long userUid, int point) {
+    public PointModel(Long userUid, int point) {
         this.userUid = userUid;
         this.point = point;
     }
 
-    public static PointModel createPointModel(long userUid, int point) {
+    public static PointModel create(long userUid, int point) {
+        if (point < 0) {
+            throw new CoreException(ErrorType.BAD_REQUEST, "포인트는 0 미만의 값으로 생성이 불가능합니다.");
+        }
         return new PointModel(userUid, point);
     }
 

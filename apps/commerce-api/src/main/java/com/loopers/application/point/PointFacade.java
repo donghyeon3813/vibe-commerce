@@ -11,6 +11,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Optional;
+
 @Component
 @RequiredArgsConstructor
 public class PointFacade {
@@ -22,11 +24,11 @@ public class PointFacade {
 
         UserModel user = userService.getUser(pointInfoRequest.userId());
         if (user == null) {
-            throw new CoreException(ErrorType.BAD_REQUEST, "회원정보가 존재하지 않습니다.");
+            return null;
         }
-        PointModel pointModel = pointService.getPointInfo(user.getId());
+        Optional<PointModel> pointModel = pointService.getPointInfo(user.getId());
+        return pointModel.map(PointInfo::from).orElse(null);
 
-        return PointInfo.from(pointModel);
     }
 
     @Transactional
@@ -35,7 +37,8 @@ public class PointFacade {
         if (user == null) {
             throw new CoreException(ErrorType.NOT_FOUND, "회원정보가 존재하지 않습니다.");
         }
-        PointModel pointModel = pointService.getPointInfo(user.getId());
+        PointModel pointModel = pointService.getPointInfo(user.getId())
+                .orElseThrow(() -> new CoreException(ErrorType.NOT_FOUND, "포인트 정보가 존재하지 않습니다."));
         if (pointModel == null) {
             pointModel = pointService.createPoint(PointCreateInfo.of(user.getId(), pointChargeRequest.point()));
         } else {

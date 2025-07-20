@@ -3,7 +3,7 @@ package com.loopers.interfaces.api;
 import com.loopers.domain.point.PointModel;
 import com.loopers.domain.user.Gender;
 import com.loopers.domain.user.UserModel;
-import com.loopers.infrastructure.point.PointJpaRepostiroy;
+import com.loopers.infrastructure.point.PointJpaRepository;
 import com.loopers.infrastructure.user.UserJpaRepository;
 import com.loopers.interfaces.api.point.PointV1Dto;
 import com.loopers.utils.DatabaseCleanUp;
@@ -24,16 +24,16 @@ public class PointV1ApiE2ETest {
 
     private final TestRestTemplate testRestTemplate;
     private final DatabaseCleanUp databaseCleanUp;
-    private final PointJpaRepostiroy pointJpaRepostiroy;
+    private final PointJpaRepository pointJpaRepository;
     private final UserJpaRepository userJpaRepository;
 
     @Autowired
     public PointV1ApiE2ETest(TestRestTemplate testRestTemplate, DatabaseCleanUp databaseCleanUp,
-                             UserJpaRepository userJpaRepository, PointJpaRepostiroy pointJpaRepostiroy) {
+                             UserJpaRepository userJpaRepository, PointJpaRepository pointJpaRepository) {
         this.testRestTemplate = testRestTemplate;
         this.databaseCleanUp = databaseCleanUp;
         this.userJpaRepository = userJpaRepository;
-        this.pointJpaRepostiroy = pointJpaRepostiroy;
+        this.pointJpaRepository = pointJpaRepository;
     }
 
     @AfterEach
@@ -49,8 +49,8 @@ public class PointV1ApiE2ETest {
         void init() {
             UserModel userModel = UserModel.CreateUser("test9999", "test@test.com", Gender.MALE.name(), "2025-07-13");
             UserModel saveUser = userJpaRepository.save(userModel);
-            PointModel pointModel = PointModel.createPointModel(saveUser.getId(), 100);
-            pointJpaRepostiroy.save(pointModel);
+            PointModel pointModel = PointModel.create(saveUser.getId(), 100);
+            pointJpaRepository.save(pointModel);
         }
 
         @DisplayName("포인트 조회에 성공할 경우, 보유 포인트를 응답으로 반환한다.")
@@ -91,16 +91,16 @@ public class PointV1ApiE2ETest {
     class Charge {
         @BeforeEach
         void init() {
-            UserModel userModel = UserModel.CreateUser("test9999", "test@test.com", Gender.MALE.name(), "2025-07-13");
+            UserModel userModel = UserModel.CreateUser("charge9999", "test@test.com", Gender.MALE.name(), "2025-07-13");
             UserModel saveUser = userJpaRepository.save(userModel);
-            PointModel pointModel = PointModel.createPointModel(saveUser.getId(), 100);
-            pointJpaRepostiroy.save(pointModel);
+            PointModel pointModel = PointModel.create(saveUser.getId(), 100);
+            pointJpaRepository.save(pointModel);
         }
 
         @DisplayName("존재하는 유저가 1000월을 충전할 경우, 충전된 보유 총량을 응답으로 반환한다.")
         @Test
         void returnsPointCharges_whenPointInquirySucceeds() {
-            String userId = "test9999";
+            String userId = "charge9999";
             int point = 100;
             int chargePoint = 1000;
             String request = """
@@ -127,7 +127,7 @@ public class PointV1ApiE2ETest {
         @DisplayName("존재하지 않는 유저로 요청할 경우, 404 Not Found 응답을 반환한다.")
         @Test
         void throwsException_whenUserNotFound() {
-            String userId = "test9998";
+            String userId = "charge9998";
             String request = """
                     {
                       "chargePoint": 1000
