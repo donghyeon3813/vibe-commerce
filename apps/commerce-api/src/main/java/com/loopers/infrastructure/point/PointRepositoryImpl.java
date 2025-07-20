@@ -5,18 +5,20 @@ import com.loopers.domain.point.PointRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
+import java.util.Optional;
+
 @Component
 @RequiredArgsConstructor
 public class PointRepositoryImpl implements PointRepository {
-    private final PointJpaRepostiroy pointJpaRepostiroy;
+    private final PointJpaRepository pointJpaRepository;
 
     @Override
-    public PointModel findByUserUid(Long userUid) {
-        return pointJpaRepostiroy.findByUserUid(userUid);
+    public Optional<PointModel> findByUserUid(Long userUid) {
+        return pointJpaRepository.findByUserUid(userUid);
     }
 
     @Override
     public PointModel save(PointModel pointModel) {
-        return pointJpaRepostiroy.save(pointModel);
+        return pointJpaRepository.save(pointModel);
     }
 }

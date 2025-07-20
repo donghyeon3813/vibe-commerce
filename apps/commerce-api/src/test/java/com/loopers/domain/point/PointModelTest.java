@@ -19,7 +19,7 @@ public class PointModelTest {
         @ParameterizedTest
         @ValueSource(ints = {0, -1})
         void throwsException_whenPointInvalid(int point) {
-            PointModel pointModel = PointModel.createPointModel(1L, 100);
+            PointModel pointModel = PointModel.create(1L, 100);
 
             CoreException result = assertThrows(CoreException.class, () -> pointModel.changePoint(point));
 
