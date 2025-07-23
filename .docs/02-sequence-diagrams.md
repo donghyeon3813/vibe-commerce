@@ -109,22 +109,27 @@ sequenceDiagram
         US --> LC: 유저 반환
     end
     LC ->> LS: 좋아요 등록 요청(userId, productId)
-    LS ->> PS: 상품 정보 조회(productId)
-    PS ->> PR: 상품 정보 조회
-    PR -->> PS: 상품 정보 반환
-    PS -->> LS: 상품 정보 반환
-    alt 상품 없음
-        PS -->> LC: 404 Not Found
-    else 상품 있음
-        LS ->> LR: 좋아요 등록 처리
-        alt 등록 실패
-        LR --> LS: 등록 실패 응답
-        else 등록 성공
-            LS -->> LC: 처리 결과 반환
-            LC -->> 사용자: 성공 응답
+    LS ->> LR: 좋아요 조회
+    LR ->> LS: 좋아요 조회 결과 반환
+    alt 좋아요 조회 결과 있음 
+        LS -> LC: 성공 반환
+    else 좋아요 조회 결과 없음
+        LS ->> PS: 상품 정보 조회(productId)
+        PS ->> PR: 상품 정보 조회
+        PR -->> PS: 상품 정보 반환
+        PS -->> LS: 상품 정보 반환
+        alt 상품 없음
+            PS -->> LC: 404 Not Found
+        else 상품 있음
+            LS ->> LR: 좋아요 등록 처리
+            alt 등록 실패
+                LR --> LS: 등록 실패 응답
+            else 등록 성공
+                LS -->> LC: 처리 결과 반환
+                LC -->> 사용자: 성공 응답
+            end
         end
     end
-    
         
 ```
 
@@ -150,8 +155,8 @@ sequenceDiagram
     LC ->> LS: 좋아요 해제 요청
     LS ->> LR: 좋아요 조회(likeID)
     LR ->> LS: 좋아요 결과 반환
-    alt 정보 없음
-        LS -->> LC: 요청 실패 응답
+    alt 좋아요 정보 없음
+        LS -->> LC: 요청 성공 응답
     else
         LS -->> LR: 좋아요 삭제 요청
         alt 삭제 실패
