@@ -4,6 +4,11 @@
 %% # : protected
 
 classDiagram
+    class BaseEntity {
+        -ZoneDateTime createdAt
+        -ZoneDateTime updatedAt
+        -ZoneDateTime deletedAt
+    }
     class User {
         -Long id
         -String userId
@@ -120,4 +125,10 @@ classDiagram
     Order "1" --> "1" OrderStatus : 주문 상태 소유
     Payment "0..1" --> "1" Order : 참조
     Payment "1" --> "1" PayType : 결제타입 소유
+    User "1" --> "1" Gender : 성별 정보 소유
+    User "1" --> "1" BaseEntity : 날짜 정보 소유
+    Order "1" --> "1" BaseEntity : 날짜 정보 소유
+    Payment "1" --> "1" BaseEntity : 날짜 정보 소유
+    Product "1" --> "1" BaseEntity : 날짜 정보 소유
+    Brand "1" --> "1" BaseEntity : 날짜 정보 소유
 ```
