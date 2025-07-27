@@ -6,6 +6,9 @@ erDiagram
         VARCHAR email
         VARCHAR gender
         DATETIME birthday
+        DATETIME created_at
+        DATETIME updated_at
+        DATETIME deleted_at
     }
 
     POINT {
@@ -17,6 +20,9 @@ erDiagram
     BRAND {
         BIGINT id PK
         VARCHAR name
+        DATETIME created_at
+        DATETIME updated_at
+        DATETIME deleted_at
     }
 
     PRODUCT {
@@ -25,6 +31,9 @@ erDiagram
         VARCHAR name
         INT quantity
         INT amount
+        DATETIME created_at
+        DATETIME updated_at
+        DATETIME deleted_at
     }
 
     LIKE {
@@ -40,6 +49,9 @@ erDiagram
         VARCHAR phone
         VARCHAR reciverName
         VARCHAR orderStatus
+        DATETIME created_at
+        DATETIME updated_at
+        DATETIME deleted_at
     }
 
     ORDER_ITEM {
@@ -54,6 +66,9 @@ erDiagram
         BIGINT orderUid
         VARCHAR payType
         VARCHAR transactionKey
+        DATETIME created_at
+        DATETIME updated_at
+        DATETIME deleted_at
     }
 
 %% 관계 정의

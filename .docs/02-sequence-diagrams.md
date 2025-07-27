@@ -9,24 +9,27 @@ sequenceDiagram
     participant BS as BrandService
     participant BR as BrandRepository
 
-    사용자->>PC: 상품 목록 요청(brandId, sort, page, size)
-    PC->>PF: 상품 목록 조회
-    PF->>PS: 상품 목록 조회
-    PS->>PR: 상품 목록 조회
-
+    사용자->>+PC: 상품 목록 요청(brandId, sort, page, size)
+    PC->>+PF: 상품 목록 조회
+    PF->>+PS: 상품 목록 조회
+    PS->>+PR: 상품 목록 조회
+    PR-->>-PS: 상품 목록 반환
+    PS-->>-PF: 상품 목록 반환
     alt 상품 없음
-        PS-->>사용자: 빈 상품 목록 반환
+        PF-->>사용자: 빈 상품 목록 반환
     else 상품 있음
-        PR-->>PF: 상품 목록 반환
-        PF->>BS: 브랜드 정보 조회(brandIds)
-        BS-->>BR: 브랜드 정보 조회
-        alt 브랜드 정보 없음
-            BR-->>PF: null 반환
-        else 브랜드 정보 있음
-            BR-->>PF: 브랜드 정보 반환
+        PF->>+BS: 브랜드 정보 조회(brandIds)
+        BS-->>+BR: 브랜드 정보 조회
+        BR-->>-BS: 브랜드 정보 반환
+        BS-->>-PF: 브랜드 정보 반환
+        alt 브랜드 정보 일부 또는 전체 없음
+            PF-->>PC: 정보 조합 및 제외 후 반환
+        else 모든 브랜드 정보 있음
+            PF-->>PC: 정보 조합 및 반환
         end
-        PF -->> 사용자: 정보 조합 및 제외 후 반환
+        deactivate PF
     end
+    PC -->> -사용자: 응답
 ```
 
 ## 상품 정보 조회
@@ -34,28 +37,32 @@ sequenceDiagram
 sequenceDiagram
     participant 사용자
     participant PC as ProductController
-    participant PS as ProductService
     participant PF as ProductFacade
+    participant PS as ProductService
     participant PR as ProductRepository
     participant BS as BrandService
     participant BR as BrandRepository
 
-    사용자->>PC: 상품 정보 요청(productId)
-    PC->>PF: 상품 정보 요청
-    PC->>PS: 상품 정보 조회
-    PS->>PR: 상품 정보 조회
+    사용자->>+PC: 상품 정보 요청(productId)
+    PC->>+PF: 상품 정보 요청
+    PF->>+PS: 상품 정보 조회
+    PS->>+PR: 상품 정보 조회
+    PR-->-PS: 상품 정보 반환
+    PS-->-PF: 상품 정보 반환
     alt 상품 없음
-        PR-->>사용자: 404 반환
+        PF-->>PC: 404 반환
     else 상품 있음
-        PR-->>PF: 상품 정보 반환
-        PF->>BS: 브랜드 정보 조회(brandIds)
-        BS->>BR: 브랜드 정보 조회
+        PF->>+BS: 브랜드 정보 조회(brandIds)
+        BS->>+BR: 브랜드 정보 조회
+        BR-->>-BS: 브랜드 정보 반환
+        BS-->>-PF: 브랜드 정보 반환
         alt 브랜드 정보 없음
-            BR-->>PF: null 반환
+            PF-->>PC: 404 반환
         else 브랜드 정보 있음
-            BR-->>PF: 브랜드 정보 반환
+            PF-->>PC: 상품 + 브랜드 정보 조합
         end
-        PF-->>사용자: 상품 + 브랜드 정보 반환
+        deactivate PF
+        PC-->>사용자: 응답
     end
 ```
 
@@ -68,15 +75,19 @@ participant BF as BrandFacade
 participant BS as BrandService
 participant BR as BrandRepository
 
-    사용자->>BC: 브랜드 정보 요청(brandId)
-    BC->>BF: 브랜드 정보 조회
-    BF->>BS: 브랜드 정보 조회
-    BS->>BR: 브랜드 정보 조회
+    사용자->>+BC: 브랜드 정보 요청(brandId)
+    BC->>+BF: 브랜드 정보 조회
+    BF->>+BS: 브랜드 정보 조회
+    BS->>+BR: 브랜드 정보 조회
+    BR-->>-BS: 브랜드 정보 반환
+    BS-->>-BF: 브랜드 정보 반환
     alt 브랜드 없음
-    BR-->>사용자: 404 반환
+        BF-->>BC: 404 반환
     else 브랜드 있음
-        BR-->>사용자: 브랜드 정보 반환
+        BF-->>BC: 브랜드 정보 반환
     end
+    deactivate BF
+    BC-->>-사용자: 응답
 ```
 
 ## 좋아요 등록
