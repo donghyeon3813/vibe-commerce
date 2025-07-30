@@ -1,6 +1,5 @@
 package com.loopers.domain.like;
 
-
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -82,5 +81,6 @@ public class LikeServiceTest {
             then(likeRepository).should().deleteLike(any());
         }
     }
+
 
 }

@@ -8,4 +8,6 @@ import java.util.Optional;
 public interface LikeJpaRepository extends JpaRepository<Like, Long> {
 
     Optional<Like> findByUserUidAndProductUid(Long userUid, Long productUid);
+
+    int countByProductUid(Long productUid);
 }

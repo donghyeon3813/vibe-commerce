@@ -5,12 +5,12 @@ import jakarta.persistence.*;
 import lombok.Getter;
 
 @Entity
-@Table(name = "likes")
 @Getter
+@Table(name = "likes", uniqueConstraints = {
+        @UniqueConstraint(columnNames = {"user_uid", "product_uid"})
+})
 public class Like extends BaseEntity {
-    @Column(unique = true)
     private Long userUid;
-    @Column(unique = true)
     private Long productUid;
 
 

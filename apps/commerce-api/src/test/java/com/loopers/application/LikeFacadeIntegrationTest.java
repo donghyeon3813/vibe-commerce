@@ -66,8 +66,9 @@ public class LikeFacadeIntegrationTest {
                 likeFacade.register(registerDto);
             });
 
-           assertThat(exception.getErrorType()).isEqualTo(ErrorType.NOT_FOUND);
+            assertThat(exception.getErrorType()).isEqualTo(ErrorType.NOT_FOUND);
         }
+
         @DisplayName("product 가 없으면 등록에 NOT_FOUND 를 반환한다.")
         @Test
         void throwsException_whenProductIdInvalid() {
@@ -103,6 +104,7 @@ public class LikeFacadeIntegrationTest {
             assertThatCode(() -> likeFacade.register(registerDto))
                     .doesNotThrowAnyException();
         }
+
         @DisplayName("like 가 등록되어 있지 않으면 등록에 성공한다.")
         @Test
         void notThrowException_whenNotExists() {
@@ -125,6 +127,7 @@ public class LikeFacadeIntegrationTest {
             assertThat(savedLike.get().getProductUid()).isEqualTo(productUid);
         }
     }
+
     @DisplayName("like 를 해제할 때")
     @Nested
     class Unregister {
@@ -133,7 +136,7 @@ public class LikeFacadeIntegrationTest {
         void throwsException_whenUserNotFound() {
             Product product = productJpaRepository.save(Product.create(1L, "name", 1000, 5));
 
-            String userId = "test9998";
+            String userId = "test9997";
             Long productUid = product.getId();
             LikeCommand.DeleteDto deleteDto = LikeCommand.DeleteDto.of(userId, productUid);
 
@@ -143,6 +146,7 @@ public class LikeFacadeIntegrationTest {
 
             assertThat(exception.getErrorType()).isEqualTo(ErrorType.NOT_FOUND);
         }
+
         @DisplayName("이미 like 가 존재하지 않으면 Exception 이 발생하지 않는다.")
         @Test
         void notThrowException_whenNotExists() {

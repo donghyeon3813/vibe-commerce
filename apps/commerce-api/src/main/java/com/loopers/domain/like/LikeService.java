@@ -23,4 +23,8 @@ public class LikeService {
         Optional<Like> findLike = likeRepository.getLike(userId, productId);
         findLike.ifPresent(likeRepository::deleteLike);
     }
+
+    public int getCountByProductUid(Long productId) {
+        return likeRepository.getCountByProductUid(productId);
+    }
 }

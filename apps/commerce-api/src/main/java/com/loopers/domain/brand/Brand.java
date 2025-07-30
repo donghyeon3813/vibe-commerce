@@ -17,7 +17,8 @@ public class Brand extends BaseEntity {
     private Brand(String name) {
         this.name = name;
     }
-    public static Brand of(String name) {
+
+    public static Brand create(String name) {
         return new Brand(name);
     }
 

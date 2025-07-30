@@ -37,7 +37,7 @@ public class BrandServiceIntegrationTest {
         @Test
         void returnBrand_whenBrandFound() {
 
-            Brand brand = Brand.of("무신사");
+            Brand brand = Brand.create("무신사");
             Brand savedBrand = brandJpaRepository.save(brand);
 
             Optional<Brand> brandInfo = brandService.getBrandInfo(savedBrand.getId());
