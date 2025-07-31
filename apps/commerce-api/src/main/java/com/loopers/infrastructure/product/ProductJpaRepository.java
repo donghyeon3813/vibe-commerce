@@ -18,4 +18,6 @@ public interface ProductJpaRepository extends JpaRepository<Product, Long> {
             WHERE (:brandUid IS NULL OR b.id = :brandUid)
             GROUP BY p.id, p.name, p.amount, p.quantity, b.name""")
     List<ProductData> findAllByPageable(@Param("brandUid") Long brandUid, Pageable pageable);
+
+    List<Product> findIdByIdIn(List<Long> productUids);
 }

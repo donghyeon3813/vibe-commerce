@@ -2,6 +2,12 @@ package com.loopers.application.like;
 
 public class LikeCommand {
 
+    public record GetProduct(String userId) {
+        public static GetProduct of(String userId) {
+            return new GetProduct(userId);
+        }
+    }
+
     public record RegisterDto(String userId, Long productId) {
         public static RegisterDto of(String userId, Long productId) {
             return new RegisterDto(userId, productId);

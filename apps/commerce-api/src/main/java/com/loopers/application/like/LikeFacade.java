@@ -1,6 +1,13 @@
 package com.loopers.application.like;
 
+import com.loopers.application.product.ProductInfo;
+import com.loopers.domain.brand.Brand;
+import com.loopers.domain.brand.BrandService;
+import com.loopers.domain.like.Like;
 import com.loopers.domain.like.LikeService;
+import com.loopers.domain.product.Product;
+import com.loopers.domain.product.ProductData;
+import com.loopers.domain.product.ProductDetailComposer;
 import com.loopers.domain.product.ProductService;
 import com.loopers.domain.user.UserModel;
 import com.loopers.domain.user.UserService;
@@ -9,6 +16,9 @@ import com.loopers.support.error.ErrorType;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
+import java.util.Collections;
+import java.util.List;
+
 @Component
 @RequiredArgsConstructor
 public class LikeFacade {
@@ -16,6 +26,8 @@ public class LikeFacade {
     private final LikeService likeService;
     private final UserService userService;
     private final ProductService productService;
+    private final BrandService brandService;
+    private final ProductDetailComposer productDetailComposer;
 
     public void register(LikeCommand.RegisterDto registerDto) {
 
@@ -36,5 +48,30 @@ public class LikeFacade {
         }
 
         likeService.unLike(user.getId(), deleteDto.productId());
+    }
+
+    public ProductInfo.ProductListInfo getProducts(LikeCommand.GetProduct request) {
+        UserModel user = userService.getUser(request.userId());
+        if (user == null) {
+            throw new CoreException(ErrorType.NOT_FOUND, "사용자를 찾을 수 없습니다.");
+        }
+        List<Like> likes = likeService.findByUserUid(user.getId());
+        List<Long> productUids = likes.stream()
+                .map(Like::getProductUid)
+                .toList();
+
+        List<Product> products = productService.getProductsByProducUids(productUids);
+        List<Long> brandUids = products.stream()
+                .map(Product::getBrandUid)
+                .toList();
+
+        List<Brand> brands = brandService.getBrandsByBrandUids(brandUids);
+
+        if (products.isEmpty() || brands.isEmpty()) {
+            return LikeInfo.ProductListInfo.from(Collections.emptyList());
+        }
+
+        List<ProductData> productDatas = productDetailComposer.composeList(products, brands, likes);
+        return LikeInfo.ProductListInfo.from(productDatas);
     }
 }

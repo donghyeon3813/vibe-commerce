@@ -19,4 +19,9 @@ public class ProductService {
     public List<ProductData> getProductList(Long brandUid, Pageable pageable) {
         return productRepository.findByPageable(brandUid, pageable);
     }
+
+
+    public List<Product> getProductsByProducUids(List<Long> productUids) {
+        return productRepository.findByProductUids(productUids);
+    }
 }

@@ -3,6 +3,7 @@ package com.loopers.domain.like;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
+import java.util.List;
 import java.util.Optional;
 
 @Component
@@ -26,5 +27,9 @@ public class LikeService {
 
     public int getCountByProductUid(Long productId) {
         return likeRepository.getCountByProductUid(productId);
+    }
+
+    public List<Like> findByUserUid(Long userUid) {
+        return likeRepository.findByUserUid(userUid);
     }
 }
