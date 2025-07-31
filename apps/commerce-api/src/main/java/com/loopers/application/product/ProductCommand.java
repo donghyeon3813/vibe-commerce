@@ -1,6 +1,7 @@
 package com.loopers.application.product;
 
 import lombok.Getter;
+import org.springframework.data.domain.Sort.Direction;
 
 
 public class ProductCommand {
@@ -18,10 +19,20 @@ public class ProductCommand {
             this.size = size;
         }
 
+        @Getter
         public enum Sort {
-            LATEST,
-            PRICE_ASC,
-            LIKE_DESC
+            LATEST("saleStartDateTime", Direction.DESC),
+            PRICE_ASC("amount", Direction.ASC),
+            LIKE_DESC("likeCount", Direction.DESC);
+
+            String field;
+            Direction direction;
+
+
+            Sort(String field, org.springframework.data.domain.Sort.Direction desc) {
+                this.field = field;
+                this.direction = desc;
+            }
 
         }
 

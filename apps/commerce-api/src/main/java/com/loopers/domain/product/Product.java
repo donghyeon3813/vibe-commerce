@@ -7,6 +7,8 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDateTime;
+
 
 @Entity
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -17,12 +19,14 @@ public class Product extends BaseEntity {
     private String name;
     private int amount;
     private int quantity;
+    private LocalDateTime saleStartDateTime;
 
     private Product(Long brandUid, String name, int amount, int quantity) {
         this.brandUid = brandUid;
         this.name = name;
         this.amount = amount;
         this.quantity = quantity;
+        this.saleStartDateTime = LocalDateTime.now();
     }
 
     public static Product create(Long brandUid, String name, int amount, int quantity) {

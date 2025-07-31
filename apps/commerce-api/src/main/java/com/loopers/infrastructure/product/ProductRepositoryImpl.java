@@ -1,19 +1,30 @@
 package com.loopers.infrastructure.product;
 
 import com.loopers.domain.product.Product;
+import com.loopers.domain.product.ProductData;
 import com.loopers.domain.product.ProductRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Component;
 
+import java.util.List;
 import java.util.Optional;
 
 @Component
 @RequiredArgsConstructor
 public class ProductRepositoryImpl implements ProductRepository {
-    private final ProductJpaRepository productRepository;
+    private final ProductJpaRepository productJpaRepository;
 
     @Override
     public Optional<Product> findByProductId(Long id) {
-        return productRepository.findById(id);
+        return productJpaRepository.findById(id);
     }
+
+    @Override
+    public List<ProductData> findByPageable(Long brandUid, Pageable pageable) {
+        return productJpaRepository.findAllByPageable(brandUid, pageable);
+    }
+
+
 }
