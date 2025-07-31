@@ -69,9 +69,9 @@ public class LikeServiceTest {
             then(likeRepository).should(never()).deleteLike(any());
         }
 
-        @DisplayName("이미 등록되어 있지 않다면 delete 를 수행한다.")
+        @DisplayName("like 가 등록되어 있다면 delete 를 수행한다.")
         @Test
-        void notDelete_whenLikeExists() {
+        void delete_whenLikeExists() {
             Long userId = 1L;
             Long productId = 1L;
             when(likeRepository.getLike(userId, productId)).thenReturn(Optional.of(Like.create(userId, productId)));
