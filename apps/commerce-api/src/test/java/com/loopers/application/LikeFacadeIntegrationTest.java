@@ -2,10 +2,14 @@ package com.loopers.application;
 
 import com.loopers.application.like.LikeCommand;
 import com.loopers.application.like.LikeFacade;
+import com.loopers.application.product.ProductInfo;
+import com.loopers.domain.brand.Brand;
 import com.loopers.domain.like.Like;
+import com.loopers.domain.point.PointModel;
 import com.loopers.domain.product.Product;
 import com.loopers.domain.user.Gender;
 import com.loopers.domain.user.UserModel;
+import com.loopers.infrastructure.brand.BrandJpaRepository;
 import com.loopers.infrastructure.like.LikeJpaRepository;
 import com.loopers.infrastructure.product.ProductJpaRepository;
 import com.loopers.infrastructure.user.UserJpaRepository;
@@ -39,6 +43,9 @@ public class LikeFacadeIntegrationTest {
 
     @Autowired
     private ProductJpaRepository productJpaRepository;
+
+    @Autowired
+    private BrandJpaRepository brandJpaRepository;
 
     @Autowired
     private DatabaseCleanUp databaseCleanUp;
@@ -188,6 +195,77 @@ public class LikeFacadeIntegrationTest {
         }
 
     }
+    @DisplayName("like 된 상품 정보를 조회할 때")
+    @Nested
+    class Products{
+        @Test
+        @DisplayName("등록되지 않은 userId로 요청시 NotFound 를 반환한다.")
+        void notThrowException_whenNotExists() {
+
+            String userId = "like0001";
+            LikeCommand.GetProduct request = LikeCommand.GetProduct.of(userId);
+
+            CoreException exception = assertThrows(CoreException.class,() -> likeFacade.getProducts(request));
+
+            assertThat(exception.getErrorType()).isEqualTo(ErrorType.NOT_FOUND);
+        }
+        @DisplayName("like 가 없으면 빈 목록을 반환한다.")
+        @Test
+        void returnsEmptyList_whenLikeNotExists() {
+            UserModel userModel = UserModel.CreateUser("like0001", "test@test.com", "MALE", "2025-07-13");
+            userJpaRepository.save(userModel);
+            String userId = "like0001";
+            LikeCommand.GetProduct request = LikeCommand.GetProduct.of(userId);
+
+            ProductInfo.ProductListInfo products = likeFacade.getProducts(request);
+
+            assertThat(products).isNotNull();
+            assertThat(products.products()).isEmpty();
+
+        }
+        @DisplayName("좋아요한 목록중 상품이 존재하지 않으면 해당 상품은 제외한다.")
+        @Test
+        void returnsOnlyExistingProductsFromLikes() {
+            UserModel userModel = UserModel.CreateUser("test9998", "test@test.com", Gender.MALE.name(), "2025-07-13");
+            UserModel saveUser = userJpaRepository.save(userModel);
+            Brand brand = Brand.create("무신사");
+            Brand savedBrand = brandJpaRepository.save(brand);
+            Product product = productJpaRepository.save(Product.create(savedBrand.getId(), "신발", 1000, 5));
+            Long userUid = saveUser.getId();
+            String userId = "test9998";
+            Long productUid = product.getId();
+            likeJpaRepository.save(Like.create(userUid, productUid));
+            likeJpaRepository.save(Like.create(userUid, 9999L));
+            LikeCommand.GetProduct request = LikeCommand.GetProduct.of(userId);
+
+            ProductInfo.ProductListInfo products = likeFacade.getProducts(request);
+
+            assertThat(products).isNotNull();
+            assertThat(products.products()).hasSize(1);
+            assertThat(products.products().get(0).productName()).isEqualTo("신발");
+
+        }
+        @DisplayName("좋아요한 목록중 브랜드가 존재하지 않으면 해당 상품은 제외한다.")
+        @Test
+        void returnsOnlyExistingBrandFromLikes() {
+            UserModel userModel = UserModel.CreateUser("test9998", "test@test.com", Gender.MALE.name(), "2025-07-13");
+            UserModel saveUser = userJpaRepository.save(userModel);
+            Product product = productJpaRepository.save(Product.create(9999L, "신발", 1000, 5));
+            Long userUid = saveUser.getId();
+            String userId = "test9998";
+            Long productUid = product.getId();
+            likeJpaRepository.save(Like.create(userUid, productUid));
+            likeJpaRepository.save(Like.create(userUid, 9999L));
+            LikeCommand.GetProduct request = LikeCommand.GetProduct.of(userId);
+
+            ProductInfo.ProductListInfo products = likeFacade.getProducts(request);
+
+            assertThat(products).isNotNull();
+            assertThat(products.products()).hasSize(0);
+
+        }
+    }
+
 
 
 }

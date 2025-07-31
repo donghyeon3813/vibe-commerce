@@ -1,11 +1,22 @@
 package com.loopers.domain.product;
 
+import com.loopers.application.like.LikeCommand;
+import com.loopers.application.product.ProductInfo;
 import com.loopers.domain.brand.Brand;
+import com.loopers.domain.brand.BrandRepository;
+import com.loopers.domain.like.Like;
+import com.loopers.infrastructure.brand.BrandJpaRepository;
+import com.loopers.infrastructure.product.ProductJpaRepository;
 import com.loopers.support.error.CoreException;
 import com.loopers.support.error.ErrorType;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+
+import java.lang.reflect.Field;
+import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertThrows;
@@ -54,6 +65,82 @@ public class ProductTest {
             assertThat(productData.brandName()).isEqualTo(brand.getName());
             assertThat(productData.likeCount()).isEqualTo(likeCount);
 
+        }
+    }
+
+    @DisplayName("내가 좋아요한 상품을 조회할때")
+    @Nested
+    class LikeWithProductData {
+
+        @DisplayName("상품이 누락되면 제외된 항목을 반환한다.")
+        @Test
+        void returnsOnlyExistingProductsFromLikes() {
+
+            Brand brand = Brand.create("나이키");
+            setId(brand, "id", 9999L);
+            Product product1 = Product.create(brand.getId(), "에어포스", 10000, 2);
+            setId(product1, "id", 8000L);
+
+            Like like1 = Like.create(9999L, 8000L);
+            Like like2 = Like.create(9999L, 9999L);
+
+            List<Product> products = List.of(product1);
+            List<Brand> brands = List.of(brand);
+            List<Like> likes = List.of(like1, like2);
+            ProductDetailComposer composer = new ProductDetailComposer();
+
+            List<ProductData> result = composer.composeList(products, brands, likes);
+
+            assertThat(result).hasSize(1);
+            assertThat(result.get(0).productName()).isEqualTo("에어포스");
+            assertThat(result.get(0).brandName()).isEqualTo("나이키");
+            assertThat(result.get(0).likeCount()).isEqualTo(1);
+        }
+        @DisplayName("브랜드 누락되면 제외된 항목을 반환한다.")
+        @Test
+        void returnProductList_excludesProducts_whenBrandIsMissing() {
+
+            Brand brand = Brand.create("나이키");
+            setId(brand, "id", 9999L);
+            Product product1 = Product.create(brand.getId(), "에어포스1", 10000, 2);
+            setId(product1, "id", 8000L);
+            Product product2 = Product.create(8000L, "에어포스", 10000, 2);
+            setId(product1, "id", 8000L);
+
+            Like like1 = Like.create(9999L, product1.getId());
+            Like like2 = Like.create(9999L, product2.getId());
+
+            List<Product> products = List.of(product1);
+            List<Brand> brands = List.of(brand);
+            List<Like> likes = List.of(like1, like2);
+            ProductDetailComposer composer = new ProductDetailComposer();
+
+            List<ProductData> result = composer.composeList(products, brands, likes);
+
+            assertThat(result).hasSize(1);
+            assertThat(result.get(0).productName()).isEqualTo("에어포스1");
+            assertThat(result.get(0).brandName()).isEqualTo("나이키");
+            assertThat(result.get(0).likeCount()).isEqualTo(1);
+        }
+
+        private void setId(Object target, String fieldName, Object value) {
+            try {
+                Field field = getField(target.getClass(), fieldName);
+                field.setAccessible(true);
+                field.set(target, value);
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        }
+        private Field getField(Class<?> clazz, String fieldName) throws NoSuchFieldException {
+            while (clazz != null) {
+                try {
+                    return clazz.getDeclaredField(fieldName);
+                } catch (NoSuchFieldException e) {
+                    clazz = clazz.getSuperclass(); // 부모 클래스로 탐색
+                }
+            }
+            throw new NoSuchFieldException("Field '" + fieldName + "' not found in class hierarchy");
         }
     }
 

@@ -7,6 +7,8 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
+import java.util.Arrays;
+import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -49,6 +51,32 @@ public class ProductServiceIntegrationTest {
                     () -> assertThat(productInfo.get().getQuantity()).isEqualTo(savedProduct.getQuantity())
             );
 
+        }
+
+        @DisplayName("상픔목록을 상품Uid 로 조회할 때")
+        @Nested
+        class InfoWithUid {
+            @DisplayName("일치하는 값이 없으면 빈 항목을 반환한다.")
+            @Test
+            void returnEmptyProductWhenUidNotFound(){
+                List<Long> productIds = Arrays.asList(9999L, 9998L);
+
+                List<Product> products = productService.getProductsByProducUids(productIds);
+
+                assertThat(products).isEmpty();
+
+            }
+            @DisplayName("일치하는 값이 있으면 데이터를 반환한다.")
+            @Test
+            void returnEmptyProductWhenUidExists(){
+                Product savedProduct = productJpaRepository.save(Product.create(1L, "과일", 1000, 5));
+                List<Long> productIds = Arrays.asList(savedProduct.getId(), 9999L);
+
+                List<Product> products = productService.getProductsByProducUids(productIds);
+
+                assertThat(products).hasSize(1);
+                assertThat(products.get(0).getId()).isEqualTo(savedProduct.getId());
+            }
         }
     }
 }
