@@ -15,6 +15,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
@@ -27,7 +28,7 @@ public class ProductFacade {
     private final LikeService likeService;
     private final ProductDetailComposer productDetailComposer;
 
-
+@Transactional(readOnly = true)
     public ProductInfo.ProductListInfo getProductList(ProductCommand.ListInfoRequest productCommand) {
         Sort sort = Sort.by(productCommand.sort.getDirection(), productCommand.sort.getField());
 
@@ -38,7 +39,7 @@ public class ProductFacade {
 
         return ProductInfo.ProductListInfo.from(productList);
     }
-
+    @Transactional(readOnly = true)
     public ProductInfo.ProductDetailInfo getProductDetailInfo(ProductCommand.DetailInfoRequest getInfo) {
         Optional<Product> productOptional = productService.getProductInfo(getInfo.productId());
 

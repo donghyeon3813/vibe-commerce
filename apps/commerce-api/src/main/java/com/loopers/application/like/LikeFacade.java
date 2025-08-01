@@ -15,6 +15,7 @@ import com.loopers.support.error.CoreException;
 import com.loopers.support.error.ErrorType;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collections;
 import java.util.List;
@@ -31,6 +32,7 @@ public class LikeFacade {
     private final BrandService brandService;
     private final ProductDetailComposer productDetailComposer;
 
+    @Transactional
     public void register(LikeCommand.RegisterDto registerDto) {
 
         UserModel user = userService.getUser(registerDto.userId());
@@ -43,6 +45,7 @@ public class LikeFacade {
         likeService.resist(user.getId(), registerDto.productId());
     }
 
+    @Transactional
     public void delete(LikeCommand.DeleteDto deleteDto) {
         UserModel user = userService.getUser(deleteDto.userId());
         if (user == null) {
@@ -52,6 +55,7 @@ public class LikeFacade {
         likeService.unLike(user.getId(), deleteDto.productId());
     }
 
+    @Transactional(readOnly = true)
     public ProductInfo.ProductListInfo getProducts(LikeCommand.GetProduct request) {
         UserModel user = userService.getUser(request.userId());
         if (user == null) {

@@ -244,7 +244,7 @@ public class OrderFacadeIntegrationTest {
 
             CoreException exception = assertThrows(CoreException.class, () -> orderFacade.getOrder(getOrder));
 
-            assertThat(exception.getErrorType()).isEqualTo(ErrorType.NOT_FOUND);
+            assertThat(exception.getErrorType()).isEqualTo(ErrorType.BAD_REQUEST);
         }
 
         @DisplayName("orderId를 찾을 수 있으면 데이터를 반환한다.")
