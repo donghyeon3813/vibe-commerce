@@ -8,6 +8,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.util.List;
+import java.util.Set;
 
 public interface ProductJpaRepository extends JpaRepository<Product, Long> {
     @Query(value = """ 
@@ -19,5 +20,5 @@ public interface ProductJpaRepository extends JpaRepository<Product, Long> {
             GROUP BY p.id, p.name, p.amount, p.quantity, b.name""")
     List<ProductData> findAllByPageable(@Param("brandUid") Long brandUid, Pageable pageable);
 
-    List<Product> findIdByIdIn(List<Long> productUids);
+    List<Product> findIdByIdIn(Set<Long> productUids);
 }

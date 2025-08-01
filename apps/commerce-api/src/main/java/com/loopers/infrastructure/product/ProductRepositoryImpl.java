@@ -9,6 +9,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 @Component
 @RequiredArgsConstructor
@@ -26,7 +27,7 @@ public class ProductRepositoryImpl implements ProductRepository {
     }
 
     @Override
-    public List<Product> findByProductUids(List<Long> productUids) {
+    public List<Product> findByProductUids(Set<Long> productUids) {
         return productJpaRepository.findIdByIdIn(productUids);
     }
 

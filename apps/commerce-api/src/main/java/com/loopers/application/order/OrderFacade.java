@@ -1,0 +1,73 @@
+package com.loopers.application.order;
+
+import com.loopers.domain.order.OrderModel;
+import com.loopers.domain.order.OrderService;
+import com.loopers.domain.payment.PaymentService;
+import com.loopers.domain.point.PointModel;
+import com.loopers.domain.point.PointService;
+import com.loopers.domain.product.Product;
+import com.loopers.domain.product.ProductService;
+import com.loopers.domain.user.UserModel;
+import com.loopers.domain.user.UserService;
+import com.loopers.support.error.CoreException;
+import com.loopers.support.error.ErrorType;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+@Component
+@RequiredArgsConstructor
+public class OrderFacade {
+
+    private final UserService userService;
+    private final ProductService productService;
+    private final PointService pointService;
+    private final OrderService orderService;
+    private final PaymentService paymentService;
+
+    @Transactional
+    public OrderInfo.OrderResponse order(OrderCommand.Order order) {
+        // 유저 확인
+        UserModel user = userService.getUser(order.getUserId());
+        if (user == null) {
+            throw new CoreException(ErrorType.NOT_FOUND, "회원을 찾을 수 없습니다.");
+        }
+        // product uid 추출
+        List<OrderCommand.Order.OrderItem> items = order.getItems();
+        Set<Long> productUidList = items.stream().map(OrderCommand.Order.OrderItem::getProductId).collect(Collectors.toSet());
+
+        //product 조회
+        List<Product> productList = productService.getProductsByProducUids(productUidList);
+        productService.checkProductConsistency(productUidList.size(), productList.size());
+
+        //point 조회
+        PointModel pointModel = pointService.getPointInfo(user.getId())
+                .orElseThrow(() -> new CoreException(ErrorType.BAD_REQUEST, "포인트 정보가 잘못되었습니다."));
+
+        //totalAmount 계산
+        int totalAmount = orderService.calulateTotalAmount(items, productList);
+
+        //order 생성
+        OrderModel orderModel = orderService
+                .create(user.getId(), order.getItems(), totalAmount, order.getPhone(), order.getReceiverName(), order.getAddress());
+
+        //point 차감
+        pointModel.deduct(totalAmount);
+
+        //재고 차감
+        productService.deductQuantity(items, productList);
+
+        //결재 정보 생성
+        paymentService.createPoint(orderModel.getId());
+
+        //order 상태 변경
+        orderModel.changeStatusToPaid();
+
+        return OrderInfo.OrderResponse.of(orderModel.getId());
+
+    }
+}

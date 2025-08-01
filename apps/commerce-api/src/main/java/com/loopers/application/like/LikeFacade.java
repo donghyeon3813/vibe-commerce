@@ -18,6 +18,8 @@ import org.springframework.stereotype.Component;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Component
 @RequiredArgsConstructor
@@ -56,9 +58,9 @@ public class LikeFacade {
             throw new CoreException(ErrorType.NOT_FOUND, "사용자를 찾을 수 없습니다.");
         }
         List<Like> likes = likeService.findByUserUid(user.getId());
-        List<Long> productUids = likes.stream()
+        Set<Long> productUids = likes.stream()
                 .map(Like::getProductUid)
-                .toList();
+                .collect(Collectors.toSet());
 
         List<Product> products = productService.getProductsByProducUids(productUids);
         List<Long> brandUids = products.stream()
