@@ -3,13 +3,9 @@ package com.loopers.application;
 import com.loopers.application.order.OrderCommand;
 import com.loopers.application.order.OrderFacade;
 import com.loopers.application.order.OrderInfo;
-import com.loopers.domain.like.Like;
-import com.loopers.domain.order.OrderModel;
-import com.loopers.domain.order.OrderRepository;
-import com.loopers.domain.order.OrderStatus;
+import com.loopers.domain.order.*;
 import com.loopers.domain.payment.PaymentRepository;
 import com.loopers.domain.point.PointModel;
-import com.loopers.domain.point.PointRepository;
 import com.loopers.domain.product.Product;
 import com.loopers.domain.user.Gender;
 import com.loopers.domain.user.UserModel;
@@ -50,17 +46,9 @@ public class OrderFacadeIntegrationTest {
     private ProductJpaRepository productJpaRepository;
 
     @Autowired
-    private OrderRepository orderRepository;
-
-    @Autowired
-    private PaymentRepository pointRepository;
-
-    @Autowired
     private DatabaseCleanUp databaseCleanUp;
     @Autowired
     private OrderJpaRepository orderJpaRepository;
-    @Autowired
-    private PaymentJpaRepository paymentJpaRepository;
 
     @AfterEach
     void tearDown() {
@@ -178,5 +166,106 @@ public class OrderFacadeIntegrationTest {
             assertThat(orderModel.get().getOrderStatus()).isEqualTo(OrderStatus.PAID);
 
         }
+
     }
+    @DisplayName("주문 목록 조회를 할 때")
+    @Nested
+    class Infos {
+        @DisplayName("등록되지 않은 유저면 NotFound를 반환한다.")
+        @Test
+        void throwsNotFound_whenUserNotFound() {
+            String userId = "notFound";
+            OrderCommand.GetOrders getOrders = OrderCommand.GetOrders.of(userId);
+
+            CoreException exception = assertThrows(CoreException.class, () -> orderFacade.getOrders(getOrders));
+
+            assertThat(exception.getErrorType()).isEqualTo(ErrorType.NOT_FOUND);
+        }
+        @DisplayName("주문 요청 내역이 없으면 빈항목을 반환한다.")
+        @Test
+        void returnsEmpty_whenOrderNotFound() {
+            UserModel userModel = UserModel.CreateUser("testId314", "test@test.com", Gender.MALE.name(), "2025-07-13");
+            userJpaRepository.save(userModel);
+            OrderCommand.GetOrders getOrders = OrderCommand.GetOrders.of(userModel.getUserId());
+
+            OrderInfo.OrderDataList orderDataList = orderFacade.getOrders(getOrders);
+
+            assertThat(orderDataList).isNotNull();
+            assertThat(orderDataList.orders()).isEmpty();
+        }
+
+        @DisplayName("주문 요청 내역이 있으면 값을 반환한다.")
+        @Test
+        void returnsOrderDataList_whenOrderFound() {
+            UserModel userModel = UserModel.CreateUser("testId314", "test@test.com", Gender.MALE.name(), "2025-07-13");
+            UserModel savedUser = userJpaRepository.save(userModel);
+            OrderModel orderModel = OrderModel.create(savedUser.getId(), 1000, Address.of("주소", "01000000000", "받는사람"));
+            orderModel.addOrderItem(OrderItem.create(9999L, 5));
+            orderModel.addOrderItem(OrderItem.create(9998L, 4));
+            orderJpaRepository.save(orderModel);
+            OrderModel orderModel2 = OrderModel.create(savedUser.getId(), 1000, Address.of("주소", "01000000000", "받는사람"));
+            orderModel2.addOrderItem(OrderItem.create(9997L, 2));
+            orderJpaRepository.save(orderModel2);
+
+            OrderCommand.GetOrders getOrders = OrderCommand.GetOrders.of(userModel.getUserId());
+
+            OrderInfo.OrderDataList orderDataList = orderFacade.getOrders(getOrders);
+
+            assertThat(orderDataList).isNotNull();
+            assertThat(orderDataList.orders()).hasSize(2);
+        }
+
+    }
+    @DisplayName("주문 목록 조회를 할 때")
+    @Nested
+    class Info {
+        @DisplayName("등록되지 않은 유저면 NotFound를 반환한다.")
+        @Test
+        void throwsNotFound_whenUserNotFound() {
+            String userId = "notFound";
+            UserModel userModel = UserModel.CreateUser("testId314", "test@test.com", Gender.MALE.name(), "2025-07-13");
+            UserModel sevedUser = userJpaRepository.save(userModel);
+            OrderModel orderModel2 = OrderModel.create(sevedUser.getId(), 1000, Address.of("주소", "01000000000", "받는사람"));
+            orderModel2.addOrderItem(OrderItem.create(9997L, 2));
+            OrderModel order = orderJpaRepository.save(orderModel2);
+            OrderCommand.GetOrder getOrder = OrderCommand.GetOrder.of(userId, order.getId());
+
+            CoreException exception = assertThrows(CoreException.class, () -> orderFacade.getOrder(getOrder));
+
+            assertThat(exception.getErrorType()).isEqualTo(ErrorType.NOT_FOUND);
+        }
+        @DisplayName("orderId를 찾을 수 없으면 BadRequest를 반환한다.")
+        @Test
+        void throwsNotFound_whenOrderIdNotFound() {
+            UserModel userModel = UserModel.CreateUser("testId314", "test@test.com", Gender.MALE.name(), "2025-07-13");
+            userJpaRepository.save(userModel);
+
+            OrderCommand.GetOrder getOrder = OrderCommand.GetOrder.of(userModel.getUserId(), 99999L);
+
+            CoreException exception = assertThrows(CoreException.class, () -> orderFacade.getOrder(getOrder));
+
+            assertThat(exception.getErrorType()).isEqualTo(ErrorType.NOT_FOUND);
+        }
+
+        @DisplayName("orderId를 찾을 수 있으면 데이터를 반환한다.")
+        @Test
+        void returnOrderData_whenOrderIdFound() {
+            UserModel userModel = UserModel.CreateUser("testId314", "test@test.com", Gender.MALE.name(), "2025-07-13");
+
+            UserModel sevedUser = userJpaRepository.save(userModel);
+
+            OrderModel orderModel2 = OrderModel.create(sevedUser.getId(), 1000, Address.of("주소", "01000000000", "받는사람"));
+            orderModel2.addOrderItem(OrderItem.create(9997L, 2));
+            OrderModel order = orderJpaRepository.save(orderModel2);
+            OrderCommand.GetOrder getOrder = OrderCommand.GetOrder.of(userModel.getUserId(), order.getId());
+
+            OrderInfo.OrderData orderData = orderFacade.getOrder(getOrder);
+
+            assertThat(orderData).isNotNull();
+            assertThat(orderData.order().getAmount()).isEqualTo(order.getAmount());
+            assertThat(orderData.order().getUserUid()).isEqualTo(order.getUserUid());
+        }
+    }
+
+
 }
