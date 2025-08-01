@@ -1,19 +1,14 @@
 package com.loopers.domain.product;
 
-import com.loopers.application.like.LikeCommand;
-import com.loopers.application.product.ProductInfo;
 import com.loopers.domain.brand.Brand;
-import com.loopers.domain.brand.BrandRepository;
 import com.loopers.domain.like.Like;
-import com.loopers.infrastructure.brand.BrandJpaRepository;
-import com.loopers.infrastructure.product.ProductJpaRepository;
 import com.loopers.support.error.CoreException;
 import com.loopers.support.error.ErrorType;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 import java.lang.reflect.Field;
 import java.util.List;
@@ -28,7 +23,7 @@ public class ProductTest {
     class Info {
         @DisplayName("brand 가 누락되면 NotFound 가 발생한다.")
         @Test
-        void throwsNotFound_whenBrandIsMissing(){
+        void throwsNotFound_whenBrandIsMissing() {
             ProductDetailComposer composer = new ProductDetailComposer();
             Brand brand = Brand.create("무신사");
 
@@ -39,7 +34,7 @@ public class ProductTest {
 
         @DisplayName("product 가 누락되면 NotFound 가 발생한다.")
         @Test
-        void throwsNotFound_whenProductIsMissing(){
+        void throwsNotFound_whenProductIsMissing() {
             ProductDetailComposer composer = new ProductDetailComposer();
             Product product = Product.create(1L, "과일", 1000, 5);
 
@@ -50,7 +45,7 @@ public class ProductTest {
 
         @DisplayName("product 와 bland 정보가 존재하면 ProductData 를 반환한다")
         @Test
-        void returnsProductDetailData_whenProductAndBrandExist(){
+        void returnsProductDetailData_whenProductAndBrandExist() {
             Product product = Product.create(1L, "과일", 1000, 5);
             Brand brand = Brand.create("무신사");
             ProductDetailComposer composer = new ProductDetailComposer();
@@ -96,6 +91,7 @@ public class ProductTest {
             assertThat(result.get(0).brandName()).isEqualTo("나이키");
             assertThat(result.get(0).likeCount()).isEqualTo(1);
         }
+
         @DisplayName("브랜드 누락되면 제외된 항목을 반환한다.")
         @Test
         void returnProductList_excludesProducts_whenBrandIsMissing() {
@@ -132,6 +128,7 @@ public class ProductTest {
                 throw new RuntimeException(e);
             }
         }
+
         private Field getField(Class<?> clazz, String fieldName) throws NoSuchFieldException {
             while (clazz != null) {
                 try {
@@ -143,5 +140,44 @@ public class ProductTest {
             throw new NoSuchFieldException("Field '" + fieldName + "' not found in class hierarchy");
         }
     }
+
+    @DisplayName("재고를 차감할 떄")
+    @Nested
+    class Deduct {
+        @DisplayName("재고가 부족하면 BadRequest 를 반환한다.")
+        @Test
+        void throwsBadRequest_whenQuantityIsMissing() {
+            Product product1 = Product.create(999L, "에어포스1", 10000, 2);
+
+            CoreException exception = assertThrows(CoreException.class, () -> product1.deductQuantity(3));
+
+            assertThat(exception.getErrorType()).isEqualTo(ErrorType.BAD_REQUEST);
+
+        }
+
+        @DisplayName("요청 수량이 0 이하이면 BadRequest를 반환한다.")
+        @ParameterizedTest
+        @ValueSource(ints = {0, -1})
+        void throwsBadRequest_whenRequestQuantityIsNonPositive(int quantity) {
+            Product product1 = Product.create(999L, "에어포스1", 10000, 2);
+
+            CoreException exception = assertThrows(CoreException.class, () -> product1.deductQuantity(quantity));
+
+            assertThat(exception.getErrorType()).isEqualTo(ErrorType.BAD_REQUEST);
+
+        }
+
+        @DisplayName("재고가 부족하지 않으면 성공한다.")
+        @Test
+        void deduct_when_sufficient() {
+            Product product1 = Product.create(999L, "에어포스1", 10000, 2);
+
+            product1.deductQuantity(1);
+
+            assertThat(product1.getQuantity()).isEqualTo(1);
+
+        }
+    }
+
 
 }
