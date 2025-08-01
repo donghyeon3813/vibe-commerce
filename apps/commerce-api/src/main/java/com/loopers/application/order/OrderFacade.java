@@ -1,7 +1,10 @@
 package com.loopers.application.order;
 
+import com.loopers.application.like.LikeInfo;
+import com.loopers.domain.order.OrderItem;
 import com.loopers.domain.order.OrderModel;
 import com.loopers.domain.order.OrderService;
+import com.loopers.domain.order.OrderWidthProductComposer;
 import com.loopers.domain.payment.PaymentService;
 import com.loopers.domain.point.PointModel;
 import com.loopers.domain.point.PointService;
@@ -15,7 +18,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -28,6 +33,8 @@ public class OrderFacade {
     private final PointService pointService;
     private final OrderService orderService;
     private final PaymentService paymentService;
+
+
 
     @Transactional
     public OrderInfo.OrderResponse order(OrderCommand.Order order) {
@@ -69,5 +76,35 @@ public class OrderFacade {
 
         return OrderInfo.OrderResponse.of(orderModel.getId());
 
+    }
+
+    @Transactional(readOnly = true)
+    public OrderInfo.OrderDataList getOrders(OrderCommand.GetOrders order) {
+        // 유저 확인
+        UserModel user = userService.getUser(order.userId());
+        if (user == null) {
+            throw new CoreException(ErrorType.NOT_FOUND, "회원을 찾을 수 없습니다.");
+        }
+        List<OrderModel> orders = orderService.getOrders(user.getId());
+        if (orders.isEmpty()) {
+            return OrderInfo.OrderDataList.of(Collections.emptyList());
+        }
+
+        return OrderInfo.OrderDataList.of(orders);
+    }
+
+    @Transactional(readOnly = true)
+    public OrderInfo.OrderData getOrder(OrderCommand.GetOrder order) {
+        // 유저 확인
+        UserModel user = userService.getUser(order.userId());
+        if (user == null) {
+            throw new CoreException(ErrorType.NOT_FOUND, "회원을 찾을 수 없습니다.");
+        }
+        Optional<OrderModel> orderModel = orderService.getOrder(user.getId(), order.orderId());
+        if(orderModel.isEmpty()) {
+            throw new CoreException(ErrorType.BAD_REQUEST, "주문 정보를 찾을 수 없습니다.");
+        }
+
+        return OrderInfo.OrderData.of(orderModel.get());
     }
 }

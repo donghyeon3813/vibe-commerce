@@ -42,4 +42,23 @@ public class OrderCommand {
         }
 
     }
+    public record GetOrders(String userId) {
+        public static GetOrders of(String userId) {
+            return new GetOrders(userId);
+        }
+        public GetOrders(String userId) {
+            this.userId = userId;
+        }
+
+    }
+
+    public record GetOrder(String userId, Long orderId) {
+        public GetOrder(String userId, Long orderId) {
+            this.userId = userId;
+            this.orderId = orderId;
+        }
+        public static GetOrder of(String userId, Long orderId) {
+            return new GetOrder(userId, orderId);
+        }
+    }
 }
