@@ -37,4 +37,13 @@ public class PointModel extends BaseEntity {
     }
 
 
+    public void deduct(int totalAmount) {
+        if (totalAmount <= 0) {
+            throw new CoreException(ErrorType.BAD_REQUEST, "결제할 포인트는 음수가 될 수 없습니다.");
+        }
+        if (this.point < totalAmount) {
+            throw new CoreException(ErrorType.BAD_REQUEST, "포인트가 부족합니다.");
+        }
+        this.point -= totalAmount;
+    }
 }
