@@ -4,31 +4,31 @@ import com.loopers.application.order.OrderCommand;
 import com.loopers.application.order.OrderFacade;
 import com.loopers.application.order.OrderInfo;
 import com.loopers.domain.order.*;
-import com.loopers.domain.payment.PaymentRepository;
 import com.loopers.domain.point.PointModel;
 import com.loopers.domain.product.Product;
 import com.loopers.domain.user.Gender;
 import com.loopers.domain.user.UserModel;
 import com.loopers.infrastructure.order.OrderJpaRepository;
-import com.loopers.infrastructure.payment.PaymentJpaRepository;
 import com.loopers.infrastructure.point.PointJpaRepository;
 import com.loopers.infrastructure.product.ProductJpaRepository;
 import com.loopers.infrastructure.user.UserJpaRepository;
 import com.loopers.support.error.CoreException;
 import com.loopers.support.error.ErrorType;
 import com.loopers.utils.DatabaseCleanUp;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Nested;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 @SpringBootTest
 public class OrderFacadeIntegrationTest {
@@ -164,6 +164,130 @@ public class OrderFacadeIntegrationTest {
             assertThat(orderModel).isPresent();
             assertThat(orderModel.get().getAmount()).isEqualTo(3200);
             assertThat(orderModel.get().getOrderStatus()).isEqualTo(OrderStatus.PAID);
+
+        }
+
+    }
+    @DisplayName("동시에 주문 요청이 올 때")
+    @Nested
+    class ConcurrencyOrders {
+        @DisplayName("다른 유저로 각각 한번씩만 성공한다.")
+        @Test
+        void shouldAllowEachUserToSucceedOnlyOnce() throws InterruptedException {
+
+            UserModel user1 = userJpaRepository.save(UserModel.CreateUser("testUser1", "user1@test.com", Gender.MALE.name(), "2025-07-13"));
+            pointJpaRepository.save(PointModel.create(user1.getId(), 10000));
+
+            UserModel user2 = userJpaRepository.save(UserModel.CreateUser("testUser2", "user2@test.com", Gender.FEMALE.name(), "2025-07-13"));
+            pointJpaRepository.save(PointModel.create(user2.getId(), 5000));
+
+            Product product1 = productJpaRepository.save(Product.create(9999L, "상의", 100, 30));
+            Product product2 = productJpaRepository.save(Product.create(9999L, "하의", 100, 30));
+
+            List<OrderCommand.Order.OrderItem> items = List.of(
+                    OrderCommand.Order.OrderItem.of(product1.getId(), 2),
+                    OrderCommand.Order.OrderItem.of(product2.getId(), 3)
+            );
+
+            // 주문 객체 2개 (유저별)
+            OrderCommand.Order order1 = OrderCommand.Order.of(items, user1.getUserId(), "서울시", "01012345678", "홍길동");
+            OrderCommand.Order order2 = OrderCommand.Order.of(items, user2.getUserId(), "부산시", "01098765432", "임꺽정");
+
+            int threadCount = 10;
+            ExecutorService executorService = Executors.newFixedThreadPool(threadCount);
+            CountDownLatch latch = new CountDownLatch(threadCount);
+
+            for (int i = 0; i < threadCount; i++) {
+                int finalI = i;
+                executorService.submit(() -> {
+                    try {
+                        if (finalI % 2 == 0) {
+                            orderFacade.order(order1); // 유저1
+                        } else {
+                            orderFacade.order(order2); // 유저2
+                        }
+                    } catch (Exception e) {
+                        throw new RuntimeException(e);
+                    } finally {
+                        latch.countDown();
+                    }
+                });
+            }
+
+            latch.await();
+
+            executorService.shutdown();
+            executorService.awaitTermination(10, TimeUnit.SECONDS);
+
+            PointModel pointModel1 = pointJpaRepository.findByUserUid(user1.getId()).get();
+            PointModel pointModel2 = pointJpaRepository.findByUserUid(user2.getId()).get();
+            Product testProduct1 = productJpaRepository.findById(product1.getId()).get();
+            Product testProduct2 = productJpaRepository.findById(product2.getId()).get();
+
+
+            assertAll(
+                    () -> assertThat(pointModel1.getPoint()).isEqualTo(9500), // 1번만 성공 500차감
+                    () -> assertThat(pointModel2.getPoint()).isEqualTo(4500), // 1번만 성공 500차감
+                    () -> assertThat(testProduct1.getQuantity()).isEqualTo(26), // 2번 성공 4차감
+                    () -> assertThat(testProduct2.getQuantity()).isEqualTo(24)); // 2번 성공 6차감
+
+        }
+        @DisplayName("같은 유저로 주문 요청시 한번만 성공한다.")
+        @Test
+        void shouldAllowOnlyOneSuccessfulOrderPerUser() throws InterruptedException {
+            // given
+            UserModel userModel = UserModel.CreateUser("testUser1", "test@test.com", Gender.MALE.name(), "2025-07-13");
+            UserModel savedUser = userJpaRepository.save(userModel);
+            pointJpaRepository.save(PointModel.create(savedUser.getId(), 10000));// 총 1만원
+
+
+            Product product1 = productJpaRepository.save(Product.create(9999L, "상의", 100, 25));
+            Product product2 = productJpaRepository.save(Product.create(9999L, "하의", 100, 30));
+
+            List<OrderCommand.Order.OrderItem> items = List.of(
+                    OrderCommand.Order.OrderItem.of(product1.getId(), 2),
+                    OrderCommand.Order.OrderItem.of(product2.getId(), 3)
+            );
+
+            OrderCommand.Order order = OrderCommand.Order.of(
+                    items,
+                    savedUser.getUserId(),
+                    "서울시",
+                    "01012345678",
+                    "홍길동"
+            );
+
+            int threadCount = 5;
+            ExecutorService executorService = Executors.newFixedThreadPool(threadCount);
+            CountDownLatch latch = new CountDownLatch(threadCount);
+
+            for (int i = 0; i < threadCount; i++) {
+                executorService.submit(() -> {
+                    try {
+                        orderFacade.order(order); // 주문 시도
+                    }catch (Exception e) {
+                        System.out.println("e.getMessage() = " + e);
+                        throw new RuntimeException(e);
+                    }finally {
+                        latch.countDown();
+                    }
+
+                });
+            }
+
+            latch.await();
+
+            executorService.shutdown();
+            executorService.awaitTermination(10, TimeUnit.SECONDS);
+
+            PointModel pointModel1 = pointJpaRepository.findByUserUid(savedUser.getId()).get();
+            Product testProduct1 = productJpaRepository.findById(product1.getId()).get();
+            Product testProduct2 = productJpaRepository.findById(product2.getId()).get();
+
+            assertAll(
+                    () -> assertThat(pointModel1.getPoint()).isEqualTo(9500),
+                    () -> assertThat(testProduct1.getQuantity()).isEqualTo(23),
+                    () -> assertThat(testProduct2.getQuantity()).isEqualTo(27));
 
         }
 

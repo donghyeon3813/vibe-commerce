@@ -2,8 +2,10 @@ package com.loopers.infrastructure.product;
 
 import com.loopers.domain.product.Product;
 import com.loopers.domain.product.ProductData;
+import jakarta.persistence.LockModeType;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -21,4 +23,8 @@ public interface ProductJpaRepository extends JpaRepository<Product, Long> {
     List<ProductData> findAllByPageable(@Param("brandUid") Long brandUid, Pageable pageable);
 
     List<Product> findIdByIdIn(Set<Long> productUids);
+
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("SELECT p FROM Product p WHERE p.id IN :ids")
+    List<Product> findIdByIdInForUpdate(@Param("ids") Set<Long> ids);
 }

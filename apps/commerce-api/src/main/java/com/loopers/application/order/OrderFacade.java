@@ -1,10 +1,7 @@
 package com.loopers.application.order;
 
-import com.loopers.application.like.LikeInfo;
-import com.loopers.domain.order.OrderItem;
 import com.loopers.domain.order.OrderModel;
 import com.loopers.domain.order.OrderService;
-import com.loopers.domain.order.OrderWidthProductComposer;
 import com.loopers.domain.payment.PaymentService;
 import com.loopers.domain.point.PointModel;
 import com.loopers.domain.point.PointService;
@@ -46,14 +43,12 @@ public class OrderFacade {
         // product uid 추출
         List<OrderCommand.Order.OrderItem> items = order.getItems();
         Set<Long> productUidList = items.stream().map(OrderCommand.Order.OrderItem::getProductId).collect(Collectors.toSet());
-
-        //product 조회
-        List<Product> productList = productService.getProductsByProducUids(productUidList);
-        productService.checkProductConsistency(productUidList.size(), productList.size());
-
         //point 조회
         PointModel pointModel = pointService.getPointInfo(user.getId())
                 .orElseThrow(() -> new CoreException(ErrorType.BAD_REQUEST, "포인트 정보가 잘못되었습니다."));
+        //product 조회
+        List<Product> productList = productService.getProductsByProductUidsForUpdate(productUidList);
+        productService.checkProductConsistency(productUidList.size(), productList.size());
 
         //totalAmount 계산
         int totalAmount = orderService.calulateTotalAmount(items, productList);
@@ -61,11 +56,9 @@ public class OrderFacade {
         //order 생성
         OrderModel orderModel = orderService
                 .create(user.getId(), order.getItems(), totalAmount, order.getPhone(), order.getReceiverName(), order.getAddress());
-
-        //point 차감
-        pointModel.deduct(totalAmount);
-
-        //재고 차감
+        // point 차감
+        pointService.deduct(pointModel, totalAmount);
+        // 재고 차감
         productService.deductQuantity(items, productList);
 
         //결재 정보 생성

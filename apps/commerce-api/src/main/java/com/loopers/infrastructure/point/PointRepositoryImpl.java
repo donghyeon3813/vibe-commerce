@@ -21,4 +21,9 @@ public class PointRepositoryImpl implements PointRepository {
     public PointModel save(PointModel pointModel) {
         return pointJpaRepository.save(pointModel);
     }
+
+    @Override
+    public PointModel saveAndFlush(PointModel pointModel) {
+        return pointJpaRepository.saveAndFlush(pointModel);
+    }
 }

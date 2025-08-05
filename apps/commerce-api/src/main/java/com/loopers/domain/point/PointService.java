@@ -23,4 +23,8 @@ public class PointService {
         PointModel pointModel = PointModel.create(info.getUserId(), info.getPoint());
         return pointRepository.save(pointModel);
     }
+    public void deduct(PointModel pointModel, int totalAmount) {
+        pointModel.deduct(totalAmount);
+        pointRepository.saveAndFlush(pointModel);
+    }
 }

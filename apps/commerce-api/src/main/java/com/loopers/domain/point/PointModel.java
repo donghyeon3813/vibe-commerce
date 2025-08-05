@@ -5,6 +5,8 @@ import com.loopers.support.error.CoreException;
 import com.loopers.support.error.ErrorType;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Table;
+
+import jakarta.persistence.Version;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -16,6 +18,8 @@ import lombok.NoArgsConstructor;
 public class PointModel extends BaseEntity {
     private Long userUid;
     private int point;
+    @Version
+    private Long version;
 
     public PointModel(Long userUid, int point) {
         this.userUid = userUid;
