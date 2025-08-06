@@ -31,5 +31,10 @@ public class ProductRepositoryImpl implements ProductRepository {
         return productJpaRepository.findIdByIdIn(productUids);
     }
 
+    @Override
+    public List<Product> findByProductUidsForUpdate(Set<Long> productUids) {
+        return productJpaRepository.findIdByIdInForUpdate(productUids);
+    }
+
 
 }

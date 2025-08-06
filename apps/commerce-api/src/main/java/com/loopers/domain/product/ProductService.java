@@ -32,12 +32,15 @@ public class ProductService {
         return productRepository.findByProductUids(productUids);
     }
 
+    public List<Product> getProductsByProductUidsForUpdate(Set<Long> productUids) {
+        return productRepository.findByProductUidsForUpdate(productUids);
+    }
+
     public void checkProductConsistency(int orderProductSize, int productSize) {
         if (orderProductSize != productSize) {
             throw new CoreException(ErrorType.NOT_FOUND, "주문한 상품을 찾을 수 없습니다.");
         }
     }
-
     public void deductQuantity(List<OrderCommand.Order.OrderItem> items, List<Product> productList) {
         Map<Long, Product> productMap = productList.stream()
                 .collect(Collectors.toMap(Product::getId, Function.identity()));

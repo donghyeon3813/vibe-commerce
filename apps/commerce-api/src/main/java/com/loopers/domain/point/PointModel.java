@@ -5,14 +5,18 @@ import com.loopers.support.error.CoreException;
 import com.loopers.support.error.ErrorType;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Table;
+
+import jakarta.persistence.Version;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.DynamicUpdate;
 
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Entity
 @Table(name = "point")
+@DynamicUpdate
 public class PointModel extends BaseEntity {
     private Long userUid;
     private int point;
