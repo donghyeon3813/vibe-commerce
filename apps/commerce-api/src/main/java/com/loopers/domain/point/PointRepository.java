@@ -7,5 +7,5 @@ public interface PointRepository {
 
     PointModel save(PointModel pointModel);
 
-    PointModel saveAndFlush(PointModel pointModel);
+    Optional<PointModel> findByUserUidForUpdate(Long userUid);
 }

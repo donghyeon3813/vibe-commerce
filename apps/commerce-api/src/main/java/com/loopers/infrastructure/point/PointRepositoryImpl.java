@@ -23,7 +23,7 @@ public class PointRepositoryImpl implements PointRepository {
     }
 
     @Override
-    public PointModel saveAndFlush(PointModel pointModel) {
-        return pointJpaRepository.saveAndFlush(pointModel);
+    public Optional<PointModel> findByUserUidForUpdate(Long userUid) {
+        return pointJpaRepository.findByUserUidForUpdate(userUid);
     }
 }

@@ -77,7 +77,9 @@ public class OrderFacadeIntegrationTest {
         @Test
         void throwsNotFound_whenProductNotFound() {
             UserModel userModel = UserModel.CreateUser("testId314", "test@test.com", Gender.MALE.name(), "2025-07-13");
-            userJpaRepository.save(userModel);
+            UserModel save = userJpaRepository.save(userModel);
+            PointModel pointModel = PointModel.create(save.getId(), 1000);
+            pointJpaRepository.save(pointModel);
 
             List<OrderCommand.Order.OrderItem> orderItemList = new ArrayList<>();
             orderItemList.add(OrderCommand.Order.OrderItem.of(1L, 1));
@@ -171,9 +173,9 @@ public class OrderFacadeIntegrationTest {
     @DisplayName("동시에 주문 요청이 올 때")
     @Nested
     class ConcurrencyOrders {
-        @DisplayName("다른 유저로 각각 한번씩만 성공한다.")
+        @DisplayName("다른 유저로 들어왔을때 재고와 포인트가 정확히 차감된다.")
         @Test
-        void shouldAllowEachUserToSucceedOnlyOnce() throws InterruptedException {
+        void shouldDeductStockAndPointCorrectlyForDifferentUser() throws InterruptedException {
 
             UserModel user1 = userJpaRepository.save(UserModel.CreateUser("testUser1", "user1@test.com", Gender.MALE.name(), "2025-07-13"));
             pointJpaRepository.save(PointModel.create(user1.getId(), 10000));
@@ -206,8 +208,6 @@ public class OrderFacadeIntegrationTest {
                         } else {
                             orderFacade.order(order2); // 유저2
                         }
-                    } catch (Exception e) {
-                        throw new RuntimeException(e);
                     } finally {
                         latch.countDown();
                     }
@@ -226,15 +226,15 @@ public class OrderFacadeIntegrationTest {
 
 
             assertAll(
-                    () -> assertThat(pointModel1.getPoint()).isEqualTo(9500), // 1번만 성공 500차감
-                    () -> assertThat(pointModel2.getPoint()).isEqualTo(4500), // 1번만 성공 500차감
-                    () -> assertThat(testProduct1.getQuantity()).isEqualTo(26), // 2번 성공 4차감
-                    () -> assertThat(testProduct2.getQuantity()).isEqualTo(24)); // 2번 성공 6차감
+                    () -> assertThat(pointModel1.getPoint()).isEqualTo(7500), // 10번 성공 2500차감
+                    () -> assertThat(pointModel2.getPoint()).isEqualTo(2500), // 10번 성공 2500차감
+                    () -> assertThat(testProduct1.getQuantity()).isEqualTo(10), // 10번 성공 20 차감
+                    () -> assertThat(testProduct2.getQuantity()).isEqualTo(0)); // 10번 성공 30 차감
 
         }
-        @DisplayName("같은 유저로 주문 요청시 한번만 성공한다.")
+        @DisplayName("같은 유저로 주문 요청시 정확히 차감된다.")
         @Test
-        void shouldAllowOnlyOneSuccessfulOrderPerUser() throws InterruptedException {
+        void shouldDeductStockAndPointCorrectlyForSameUser() throws InterruptedException {
             // given
             UserModel userModel = UserModel.CreateUser("testUser1", "test@test.com", Gender.MALE.name(), "2025-07-13");
             UserModel savedUser = userJpaRepository.save(userModel);
@@ -265,9 +265,6 @@ public class OrderFacadeIntegrationTest {
                 executorService.submit(() -> {
                     try {
                         orderFacade.order(order); // 주문 시도
-                    }catch (Exception e) {
-                        System.out.println("e.getMessage() = " + e);
-                        throw new RuntimeException(e);
                     }finally {
                         latch.countDown();
                     }
@@ -285,9 +282,9 @@ public class OrderFacadeIntegrationTest {
             Product testProduct2 = productJpaRepository.findById(product2.getId()).get();
 
             assertAll(
-                    () -> assertThat(pointModel1.getPoint()).isEqualTo(9500),
-                    () -> assertThat(testProduct1.getQuantity()).isEqualTo(23),
-                    () -> assertThat(testProduct2.getQuantity()).isEqualTo(27));
+                    () -> assertThat(pointModel1.getPoint()).isEqualTo(7500),
+                    () -> assertThat(testProduct1.getQuantity()).isEqualTo(15),
+                    () -> assertThat(testProduct2.getQuantity()).isEqualTo(15));
 
         }
 

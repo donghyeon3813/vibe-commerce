@@ -18,13 +18,14 @@ public class PointService {
         return pointRepository.findByUserUid(userUid);
     }
 
+    public Optional<PointModel> getPointInfoForUpdate(Long userUid) {
+
+        return pointRepository.findByUserUidForUpdate(userUid);
+    }
+
     @Transactional
     public PointModel createPoint(PointCreateInfo info) {
         PointModel pointModel = PointModel.create(info.getUserId(), info.getPoint());
         return pointRepository.save(pointModel);
-    }
-    public void deduct(PointModel pointModel, int totalAmount) {
-        pointModel.deduct(totalAmount);
-        pointRepository.saveAndFlush(pointModel);
     }
 }

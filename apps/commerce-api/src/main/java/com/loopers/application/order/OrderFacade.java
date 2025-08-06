@@ -44,7 +44,7 @@ public class OrderFacade {
         List<OrderCommand.Order.OrderItem> items = order.getItems();
         Set<Long> productUidList = items.stream().map(OrderCommand.Order.OrderItem::getProductId).collect(Collectors.toSet());
         //point 조회
-        PointModel pointModel = pointService.getPointInfo(user.getId())
+        PointModel pointModel = pointService.getPointInfoForUpdate(user.getId())
                 .orElseThrow(() -> new CoreException(ErrorType.BAD_REQUEST, "포인트 정보가 잘못되었습니다."));
         //product 조회
         List<Product> productList = productService.getProductsByProductUidsForUpdate(productUidList);
@@ -57,7 +57,7 @@ public class OrderFacade {
         OrderModel orderModel = orderService
                 .create(user.getId(), order.getItems(), totalAmount, order.getPhone(), order.getReceiverName(), order.getAddress());
         // point 차감
-        pointService.deduct(pointModel, totalAmount);
+        pointModel.deduct(totalAmount);
         // 재고 차감
         productService.deductQuantity(items, productList);
 
