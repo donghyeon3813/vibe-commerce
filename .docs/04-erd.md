@@ -43,7 +43,8 @@ erDiagram
 
     ORDER {
         BIGINT id PK
-        BIGINT userUid FK
+        BIGINT userUid
+        BIGINT couponIssoueId
         INT amount
         VARCHAR address
         VARCHAR phone
@@ -70,6 +71,19 @@ erDiagram
         DATETIME updated_at
         DATETIME deleted_at
     }
+    
+    COUPON {
+        BIGINT id PK
+        VARCHAR coupon_type
+        DECIMAL value
+    }
+
+    COUPON_ISSUE {
+        BIGINT id PK
+        BIGINT coupon_id FK
+        BIGINT user_id FK
+        INT use_flag
+    }
 
 %% 관계 정의
     POINT ||--|| USER : ""
@@ -80,5 +94,9 @@ erDiagram
     ORDER ||--|| USER : ""
     ORDER_ITEM ||--|| PRODUCT : ""
     PAYMENT ||--|| ORDER : ""
+    COUPON ||--o{ COUPON_ISSUE : ""
+    USER ||--o{ COUPON_ISSUE : ""
+    ORDER ||--o| COUPON_ISSUE : ""
+    
 
 ```
