@@ -19,8 +19,4 @@ public record ProductInfo() {
         }
     }
 
-//    record ProductList(List<ProductDetailInfo> products) {
-//
-//    }
-
 }

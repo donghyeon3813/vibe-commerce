@@ -17,6 +17,8 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
+import java.math.BigDecimal;
+
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
@@ -50,13 +52,13 @@ public class PointFacadeIntegrationTest {
             PointV1Dto.PointChargeRequest pointChargeRequest = PointV1Dto.PointChargeRequest.of(100, "test9998");
             UserModel userModel = UserModel.CreateUser("test9998", "test@test.com", Gender.MALE.name(), "2025-07-13");
             UserModel saveUser = userJpaRepository.save(userModel);
-            PointModel pointModel = PointModel.create(saveUser.getId(), 1000);
+            PointModel pointModel = PointModel.create(saveUser.getId(), BigDecimal.valueOf(1000));
             pointJpaRepository.save(pointModel);
 
             PointChargeInfo pointInfo = pointFacade.chargePoint(pointChargeRequest);
 
             assertThat(pointInfo).isNotNull();
-            assertThat(pointInfo.getPoint()).isEqualTo(1100);
+            assertThat(pointInfo.getPoint().doubleValue()).isEqualTo(1100);
         }
 
     }
@@ -69,14 +71,14 @@ public class PointFacadeIntegrationTest {
         void returnsPointInfo_whenUserExists() {
             UserModel userModel = UserModel.CreateUser("info3000", "test@test.com", "MALE", "2025-07-13");
             UserModel user = userJpaRepository.save(userModel);
-            PointModel pointModel = new PointModel(user.getId(), 100);
+            PointModel pointModel = new PointModel(user.getId(), BigDecimal.valueOf(100));
             pointJpaRepository.save(pointModel);
             String userId = "info3000";
             PointV1Dto.PointInfoRequest pointInfoRequest = PointV1Dto.PointInfoRequest.of(userId);
             PointInfo pointInfo = pointFacade.getPointInfo(pointInfoRequest);
 
             assertThat(pointInfo).isNotNull();
-            assertThat(pointInfo.point()).isEqualTo(100);
+            assertThat(pointInfo.point().doubleValue()).isEqualTo(100);
 
         }
 

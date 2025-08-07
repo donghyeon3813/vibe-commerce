@@ -16,6 +16,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertThrows;
 
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -44,7 +45,7 @@ public class OrderServiceTest {
             orderItemList.add(OrderCommand.Order.OrderItem.of(1L, 1));
             orderItemList.add(OrderCommand.Order.OrderItem.of(2L, 2));
             orderItemList.add(OrderCommand.Order.OrderItem.of(3L, 2));
-            CoreException exception = assertThrows(CoreException.class, () -> orderService.calulateTotalAmount(orderItemList, productList));
+            CoreException exception = assertThrows(CoreException.class, () -> orderService.calulateTotalAmount(orderItemList, productList, null));
 
             assertThat(exception.getErrorType()).isEqualTo(ErrorType.BAD_REQUEST);
 
@@ -64,9 +65,9 @@ public class OrderServiceTest {
             orderItemList.add(OrderCommand.Order.OrderItem.of(product1.getId(), 2));
             orderItemList.add(OrderCommand.Order.OrderItem.of(product2.getId(), 2));
             orderItemList.add(OrderCommand.Order.OrderItem.of(product3.getId(), 2));
-            int totalAmount = orderService.calulateTotalAmount(orderItemList, productList);
+            BigDecimal totalAmount = orderService.calulateTotalAmount(orderItemList, productList, null);
 
-            assertThat(totalAmount).isEqualTo(3200);
+            assertThat(totalAmount.doubleValue()).isEqualTo(3200);
 
         }
     }

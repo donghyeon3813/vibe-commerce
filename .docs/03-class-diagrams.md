@@ -65,6 +65,7 @@ classDiagram
     class Order {
         -Long id
         -Long userUid
+        -Long couponIssueId
         -List<OrderItem> items
         -int amount
         -Address address
@@ -113,6 +114,27 @@ classDiagram
         %% 결제 타입 반환
         +getPayType()
     }
+    class Coupon {
+        -Long id
+        -CouponType couponType
+        -BigDecimal value
+        +create()
+    }
+    
+    class CouponType {
+        <<enumeration>>>
+        FIXED_AMOUNT
+        PERCENTAGE
+        +getCouponType()
+    }
+    
+    class CouponIssue {
+        Long CouponId
+        Long UserId
+        int useFlag
+        +create()
+        +use()
+    }
 
     Point "1" --> "1" User : 참조
     Product "1" --> "1" Brand : 참조
@@ -131,4 +153,8 @@ classDiagram
     Payment "1" --> "1" BaseEntity : 날짜 정보 소유
     Product "1" --> "1" BaseEntity : 날짜 정보 소유
     Brand "1" --> "1" BaseEntity : 날짜 정보 소유
+    Coupon "1" --> "1"BaseEntity : 날짜 정보 소유
+    Coupon "1" --> "1"CouponType : 쿠폰 타입 소유
+    CouponIssue "1" --> "1" Coupon : 참조
+    CouponIssue "1" --> "1" User : 참조
 ```
