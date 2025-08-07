@@ -5,7 +5,6 @@ import com.loopers.application.like.LikeFacade;
 import com.loopers.application.product.ProductInfo;
 import com.loopers.domain.brand.Brand;
 import com.loopers.domain.like.Like;
-import com.loopers.domain.point.PointModel;
 import com.loopers.domain.product.Product;
 import com.loopers.domain.user.Gender;
 import com.loopers.domain.user.UserModel;
@@ -24,6 +23,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
 import java.util.Optional;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
@@ -263,6 +266,105 @@ public class LikeFacadeIntegrationTest {
             assertThat(products).isNotNull();
             assertThat(products.products()).hasSize(0);
 
+        }
+    }
+    @DisplayName("like를 동시에 요청할때")
+    @Nested
+    class Concurrency {
+        @DisplayName("좋아요 요청이 실제 등록된 횟수만큼 좋아요 수가 정확히 증가하여 조회된다.")
+        @Test
+        void itIncrementsLikeCountAccordingToRequestCount() throws InterruptedException {
+            // given
+
+            UserModel saveUser1 = userJpaRepository.save(UserModel.CreateUser("test1000", "test@test.com", Gender.MALE.name(), "2025-07-13"));
+            UserModel saveUser2 = userJpaRepository.save(UserModel.CreateUser("test1001", "test@test.com", Gender.MALE.name(), "2025-07-13"));
+            UserModel saveUser3 = userJpaRepository.save(UserModel.CreateUser("test1002", "test@test.com", Gender.MALE.name(), "2025-07-13"));
+            UserModel saveUser4 = userJpaRepository.save(UserModel.CreateUser("test1003", "test@test.com", Gender.MALE.name(), "2025-07-13"));
+            Product product = productJpaRepository.save(Product.create(1L, "name", 1000, 5));
+
+            Long productUid = product.getId();
+            LikeCommand.RegisterDto[] registerDtos = new LikeCommand.RegisterDto[]{
+                    LikeCommand.RegisterDto.of(saveUser1.getUserId(), productUid),
+                    LikeCommand.RegisterDto.of(saveUser2.getUserId(), productUid),
+                    LikeCommand.RegisterDto.of(saveUser3.getUserId(), productUid),
+                    LikeCommand.RegisterDto.of(saveUser4.getUserId(), productUid),
+                    LikeCommand.RegisterDto.of(saveUser4.getUserId(), productUid)
+            };
+
+
+            int threadCount = 5;
+            ExecutorService executorService = Executors.newFixedThreadPool(threadCount);
+            CountDownLatch latch = new CountDownLatch(threadCount);
+
+            for (int i = 0; i < threadCount; i++) {
+                int finalI = i;
+                executorService.submit(() -> {
+                    try {
+                        likeFacade.register(registerDtos[finalI]);
+                    }finally {
+                        latch.countDown();
+                    }
+
+                });
+            }
+
+            latch.await();
+            executorService.shutdown();
+            executorService.awaitTermination(10, TimeUnit.SECONDS);
+
+            int resultCount = likeJpaRepository.countByProductUid(productUid);
+            assertThat(resultCount).isEqualTo(4);
+        }
+
+        @DisplayName("좋아요 해제 요청이 발생한 횟수만큼 좋아요 수가 정확히 차감되어 조회된다.")
+        @Test
+        void itDecrementsLikeCountAccordingToUnlikeRequestCount() throws InterruptedException {
+            // given
+
+            UserModel saveUser1 = userJpaRepository.save(UserModel.CreateUser("test1000", "test@test.com", Gender.MALE.name(), "2025-07-13"));
+            UserModel saveUser2 = userJpaRepository.save(UserModel.CreateUser("test1001", "test@test.com", Gender.MALE.name(), "2025-07-13"));
+            UserModel saveUser3 = userJpaRepository.save(UserModel.CreateUser("test1002", "test@test.com", Gender.MALE.name(), "2025-07-13"));
+            UserModel saveUser4 = userJpaRepository.save(UserModel.CreateUser("test1003", "test@test.com", Gender.MALE.name(), "2025-07-13"));
+            UserModel saveUser5 = userJpaRepository.save(UserModel.CreateUser("test1004", "test@test.com", Gender.MALE.name(), "2025-07-13"));
+            Product product = productJpaRepository.save(Product.create(1L, "name", 1000, 5));
+            likeJpaRepository.save(Like.create(saveUser1.getId(), product.getId()));
+            likeJpaRepository.save(Like.create(saveUser2.getId(), product.getId()));
+            likeJpaRepository.save(Like.create(saveUser3.getId(), product.getId()));
+            likeJpaRepository.save(Like.create(saveUser4.getId(), product.getId()));
+            likeJpaRepository.save(Like.create(saveUser5.getId(), product.getId()));
+            Long productUid = product.getId();
+
+            LikeCommand.DeleteDto[] delteDtos = new LikeCommand.DeleteDto[]{
+                    LikeCommand.DeleteDto.of(saveUser1.getUserId(), productUid),
+                    LikeCommand.DeleteDto.of(saveUser2.getUserId(), productUid),
+                    LikeCommand.DeleteDto.of(saveUser3.getUserId(), productUid),
+                    LikeCommand.DeleteDto.of(saveUser4.getUserId(), productUid),
+                    LikeCommand.DeleteDto.of(saveUser5.getUserId(), productUid),
+            };
+
+
+            int threadCount = 5;
+            ExecutorService executorService = Executors.newFixedThreadPool(threadCount);
+            CountDownLatch latch = new CountDownLatch(threadCount);
+
+            for (int i = 0; i < threadCount; i++) {
+                int finalI = i;
+                executorService.submit(() -> {
+                    try {
+                        likeFacade.delete(delteDtos[finalI]);
+                    }finally {
+                        latch.countDown();
+                    }
+
+                });
+            }
+
+            latch.await();
+            executorService.shutdown();
+            executorService.awaitTermination(10, TimeUnit.SECONDS);
+
+            int resultCount = likeJpaRepository.countByProductUid(productUid);
+            assertThat(resultCount).isEqualTo(0);
         }
     }
 
