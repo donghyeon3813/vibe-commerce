@@ -6,6 +6,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
+import java.util.Optional;
 
 @Component
 @RequiredArgsConstructor
@@ -16,5 +17,10 @@ public class CouponRepositoryImpl implements CouponRepository {
     @Override
     public List<Coupon> findByIdIn(List<Long> couponIssueIds) {
         return couponJPaRepository.findByIdIn(couponIssueIds);
+    }
+
+    @Override
+    public Optional<Coupon> findById(Long couponUid) {
+        return couponJPaRepository.findById(couponUid);
     }
 }

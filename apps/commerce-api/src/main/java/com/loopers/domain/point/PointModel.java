@@ -6,11 +6,12 @@ import com.loopers.support.error.ErrorType;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Table;
 
-import jakarta.persistence.Version;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.DynamicUpdate;
+
+import java.math.BigDecimal;
 
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -19,35 +20,35 @@ import org.hibernate.annotations.DynamicUpdate;
 @DynamicUpdate
 public class PointModel extends BaseEntity {
     private Long userUid;
-    private int point;
+    private BigDecimal point;
 
-    public PointModel(Long userUid, int point) {
+    public PointModel(Long userUid, BigDecimal point) {
         this.userUid = userUid;
         this.point = point;
     }
 
-    public static PointModel create(long userUid, int point) {
-        if (point < 0) {
+    public static PointModel create(long userUid, BigDecimal point) {
+        if (point.compareTo(BigDecimal.ZERO) < 0) {
             throw new CoreException(ErrorType.BAD_REQUEST, "포인트는 0 미만의 값으로 생성이 불가능합니다.");
         }
         return new PointModel(userUid, point);
     }
 
-    public void changePoint(int point) {
-        if (point <= 0) {
+    public void changePoint(BigDecimal point) {
+        if (point.compareTo(BigDecimal.ZERO) <= 0) {
             throw new CoreException(ErrorType.BAD_REQUEST, "포인트는 0 이하로 충전이 불가능합니다.");
         }
-        this.point += point;
+        this.point = this.point.add(point);
     }
 
 
-    public void deduct(int totalAmount) {
-        if (totalAmount <= 0) {
+    public void deduct(BigDecimal totalAmount) {
+        if (totalAmount.doubleValue() <= 0) {
             throw new CoreException(ErrorType.BAD_REQUEST, "결제할 포인트는 음수가 될 수 없습니다.");
         }
-        if (this.point < totalAmount) {
+        if (this.point.compareTo(totalAmount) < 0) {
             throw new CoreException(ErrorType.BAD_REQUEST, "포인트가 부족합니다.");
         }
-        this.point -= totalAmount;
+        this.point = this.point.subtract(totalAmount);
     }
 }

@@ -1,6 +1,7 @@
 package com.loopers.domain.order;
 
 import com.loopers.application.order.OrderCommand;
+import com.loopers.domain.coupon.Coupon;
 import com.loopers.domain.product.Product;
 import com.loopers.support.error.CoreException;
 import com.loopers.support.error.ErrorType;
@@ -8,6 +9,7 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -19,7 +21,7 @@ public class OrderService {
 
     private final OrderRepository orderRepository;
 
-    public int calulateTotalAmount(List<OrderCommand.Order.OrderItem> items, List<Product> productList) {
+    public BigDecimal calulateTotalAmount(List<OrderCommand.Order.OrderItem> items, List<Product> productList, Coupon coupon) {
         Map<Long, Product> productMap = productList.stream()
                 .peek(product -> {
                     if (product == null) {
@@ -28,18 +30,24 @@ public class OrderService {
                 })
                 .collect(Collectors.toMap(Product::getId, p -> p));
 
-        int totalAmount = 0;
+        BigDecimal totalAmount = BigDecimal.ZERO;
         for (OrderCommand.Order.OrderItem item : items) {
             Product product = productMap.get(item.getProductId());
-            totalAmount += product.getAmount() * item.getQuantity();
+            totalAmount = totalAmount.add(BigDecimal.valueOf((long) product.getAmount() * item.getQuantity()));
+        }
+        if (coupon != null) {
+            totalAmount = coupon.calculateDiscount(totalAmount);
+        }
+        if (totalAmount.compareTo(BigDecimal.ZERO) <= 0) {
+            throw new CoreException(ErrorType.BAD_REQUEST, "총 금액은 0보다 커야 합니다.");
         }
         return totalAmount;
 
     }
 
     @Transactional
-    public OrderModel create(Long userId, List<OrderCommand.Order.OrderItem> items, int totalAmount, String phone, String receiverName, String address) {
-        OrderModel orderModel = OrderModel.create(userId, totalAmount, Address.of(address, phone, receiverName));
+    public OrderModel create(Long userId, List<OrderCommand.Order.OrderItem> items, BigDecimal totalAmount, String phone, String receiverName, String address, Long couponId) {
+        OrderModel orderModel = OrderModel.create(userId, totalAmount, Address.of(address, phone, receiverName), couponId);
         for (OrderCommand.Order.OrderItem item : items) {
             orderModel.addOrderItem(OrderItem.create(item.getProductId(), item.getQuantity()));
         }

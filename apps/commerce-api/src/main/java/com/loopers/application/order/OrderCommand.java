@@ -12,17 +12,19 @@ public class OrderCommand {
         private final String address;
         private final String phone;
         private final String receiverName;
+        private final Long couponId;
 
-        public Order(List<OrderItem> items, String userId, String address, String phone, String receiverName) {
+        public Order(List<OrderItem> items, String userId, String address, String phone, String receiverName, Long couponId) {
             this.items = items;
             this.userId = userId;
             this.address = address;
             this.phone = phone;
             this.receiverName = receiverName;
+            this.couponId = couponId;
         }
 
-        public static Order of(List<OrderItem> items, String userId, String address, String phone, String receiverName) {
-            return new Order(items, userId, address, phone, receiverName);
+        public static Order of(List<OrderItem> items, String userId, String address, String phone, String receiverName, Long couponId) {
+            return new Order(items, userId, address, phone, receiverName, couponId);
         }
 
         @Getter

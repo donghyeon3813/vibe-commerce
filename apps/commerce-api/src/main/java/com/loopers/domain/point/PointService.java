@@ -5,6 +5,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.util.Optional;
 
 @Component
@@ -25,7 +26,7 @@ public class PointService {
 
     @Transactional
     public PointModel createPoint(PointCreateInfo info) {
-        PointModel pointModel = PointModel.create(info.getUserId(), info.getPoint());
+        PointModel pointModel = PointModel.create(info.getUserId(), (info.getPoint()));
         return pointRepository.save(pointModel);
     }
 }

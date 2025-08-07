@@ -35,6 +35,17 @@ public class Coupon extends BaseEntity {
         if (value == null || value.compareTo(BigDecimal.ZERO) <= 0) {
             throw new CoreException(ErrorType.BAD_REQUEST, "value 는 0보다 커야 합니다.");
         }
+        if (couponType == CouponType.PERCENTAGE && value.compareTo(BigDecimal.valueOf(80)) > 0) {
+            throw new CoreException(ErrorType.BAD_REQUEST, "퍼센트 할인 쿠폰은 최대 80%까지만 허용됩니다.");
+        }
+
         return new Coupon(couponType, value);
+    }
+
+    public BigDecimal calculateDiscount(BigDecimal totalAmount) {
+        if (totalAmount == null || totalAmount.compareTo(BigDecimal.ZERO) <= 0) {
+            throw new CoreException(ErrorType.BAD_REQUEST);
+        }
+        return couponType.calculate(totalAmount, value);
     }
 }

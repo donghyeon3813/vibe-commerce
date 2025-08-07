@@ -14,6 +14,8 @@ import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.*;
 
+import java.math.BigDecimal;
+
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.junit.jupiter.api.Assertions.assertAll;
 
@@ -49,7 +51,7 @@ public class PointV1ApiE2ETest {
         void init() {
             UserModel userModel = UserModel.CreateUser("test9999", "test@test.com", Gender.MALE.name(), "2025-07-13");
             UserModel saveUser = userJpaRepository.save(userModel);
-            PointModel pointModel = PointModel.create(saveUser.getId(), 100);
+            PointModel pointModel = PointModel.create(saveUser.getId(), BigDecimal.valueOf(100));
             pointJpaRepository.save(pointModel);
         }
 
@@ -68,7 +70,7 @@ public class PointV1ApiE2ETest {
 
             assertAll(
                     () -> assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK),
-                    () -> assertThat(response.getBody().data().point()).isEqualTo(100)
+                    () -> assertThat(response.getBody().data().point().doubleValue()).isEqualTo(100)
             );
 
         }
@@ -93,11 +95,11 @@ public class PointV1ApiE2ETest {
         void init() {
             UserModel userModel = UserModel.CreateUser("charge9999", "test@test.com", Gender.MALE.name(), "2025-07-13");
             UserModel saveUser = userJpaRepository.save(userModel);
-            PointModel pointModel = PointModel.create(saveUser.getId(), 100);
+            PointModel pointModel = PointModel.create(saveUser.getId(), BigDecimal.valueOf(100));
             pointJpaRepository.save(pointModel);
         }
 
-        @DisplayName("존재하는 유저가 1000월을 충전할 경우, 충전된 보유 총량을 응답으로 반환한다.")
+        @DisplayName("존재하는 유저가 1000원을 충전할 경우, 충전된 보유 총량을 응답으로 반환한다.")
         @Test
         void returnsPointCharges_whenPointInquirySucceeds() {
             String userId = "charge9999";
@@ -120,7 +122,7 @@ public class PointV1ApiE2ETest {
                     testRestTemplate.exchange(requestUrl, HttpMethod.POST, httpEntity, responseType);
             assertAll(
                     () -> assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK),
-                    () -> assertThat(response.getBody().data().point()).isEqualTo(point + chargePoint)
+                    () -> assertThat(response.getBody().data().point().doubleValue()).isEqualTo(point + chargePoint)
             );
         }
 

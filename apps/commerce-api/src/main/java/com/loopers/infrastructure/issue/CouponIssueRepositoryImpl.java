@@ -6,6 +6,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
+import java.util.Optional;
 
 @Component
 @RequiredArgsConstructor
@@ -16,5 +17,10 @@ public class CouponIssueRepositoryImpl implements CouponIssueRepository {
     @Override
     public List<CouponIssue> findByUserUidAndUseFlag(int useFlag, Long userUid) {
         return couponIssueJpaRepository.findByUseFlagAndUserUid(useFlag, userUid);
+    }
+
+    @Override
+    public Optional<CouponIssue> findByIdAndUseFlagForUpdate(Long couponId, int useFlag) {
+        return couponIssueJpaRepository.findByIdAndUseFlagForUpdate(couponId, useFlag);
     }
 }

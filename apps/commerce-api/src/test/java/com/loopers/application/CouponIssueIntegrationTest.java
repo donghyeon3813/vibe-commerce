@@ -3,12 +3,9 @@ package com.loopers.application;
 import com.loopers.application.issue.CouponIssueCommand;
 import com.loopers.application.issue.CouponIssueFacade;
 import com.loopers.application.issue.CouponIssueInfo;
-import com.loopers.application.order.OrderCommand;
 import com.loopers.domain.coupon.Coupon;
-import com.loopers.domain.coupon.CouponRepository;
 import com.loopers.domain.coupon.CouponType;
 import com.loopers.domain.issue.CouponIssue;
-import com.loopers.domain.issue.CouponIssueRepository;
 import com.loopers.domain.user.Gender;
 import com.loopers.domain.user.UserModel;
 import com.loopers.infrastructure.coupon.CouponJpaRepository;
@@ -25,8 +22,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
 import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -83,7 +78,7 @@ public class CouponIssueIntegrationTest {
         void returnsCouponList_whenSucessful() {
             UserModel saveUser = userJpaRepository
                     .save(UserModel.CreateUser("test9998", "test@test.com", Gender.MALE.name(), "2025-07-13"));
-            Coupon savedCoupon = couponJpaRepository.save(Coupon.create(CouponType.FIXED_AMOUNT, BigDecimal.valueOf(500)));
+            Coupon savedCoupon = couponJpaRepository.save(Coupon.create(CouponType.FIXED, BigDecimal.valueOf(500)));
             couponIssueRepository.save(CouponIssue.of(savedCoupon.getId(), saveUser.getId()));
 
             CouponIssueCommand.GetList getList = CouponIssueCommand.GetList.of(saveUser.getUserId());
