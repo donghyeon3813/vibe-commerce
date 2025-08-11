@@ -222,6 +222,8 @@ sequenceDiagram
     participant OR as OrderRepository
     participant US as UserService
     participant UR as UserRepository
+    participant CS as CouponService
+    participant CR as CouponRepository
     participant PtS as PointService
     participant PtR as PointRepository
     participant PayS as PaymentService
@@ -245,6 +247,13 @@ sequenceDiagram
     else 저장 성공
         OR -->> OF: 주문 정보 반환(결제 대기)
     end
+    OF -->>+ CS: 쿠폰 조회
+    CS -->>+ CR: 쿠폰 조회
+    CR -->>- CS: 쿠폰 반환
+    CS -->>- OF: 쿠폰 반환
+    alt 쿠폰 없음
+    OF -->> 사용자 :주문 요청 실패
+    end
     OF ->> PtS: 포인트 차감 요청
     alt 차감 실패
         PtS -->>사용자: 실패 반환
@@ -264,6 +273,38 @@ sequenceDiagram
     end
     OS ->> OR: 주문 상태 변경 (결제 완료)
     OR --> 사용자 : 결과 반환
+    
+    
+```
+
+### 쿠폰
+```mermaid
+sequenceDiagram
+    participant 사용자
+    participant CC as CouponController
+    participant CF as CouponFacade
+    participant US as UserService
+    participant UR as UserRepository
+    participant CS as CouponService
+    participant CR as CouponRepository
+    
+    사용자 -->>+ CC : 쿠폰 목록 조회 요청
+    CC -->>+ CF : 쿠폰 목록 조회 요청
+    CF -->>+ US : 유저 조회 요청
+    US -->>+ UR : 유저 조회
+    UR -->>- US : 유저 정보 반환
+    US -->>- CF : 유저 정보 반환
+    alt 사용자 정보 없음
+     CF -->> CC : NotFound 반환
+     CC -->> 사용자 : 응답값 반환
+    end
+     CF -->>+ CS : 쿠폰 목록 조회
+     CS -->>+ CR : 쿠폰 목록 조회
+     CR -->>- CS : 쿠폰 목록 반환
+     CS -->>- CF : 쿠폰 목록 반환
+     CF -->>- CC : 쿠폰 목록 반환
+     CC -->>- 사용자 : 쿠폰 목록 반환
+    
     
     
 ```

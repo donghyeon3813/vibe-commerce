@@ -3,32 +3,39 @@ package com.loopers.application;
 import com.loopers.application.order.OrderCommand;
 import com.loopers.application.order.OrderFacade;
 import com.loopers.application.order.OrderInfo;
+import com.loopers.domain.coupon.Coupon;
+import com.loopers.domain.coupon.CouponType;
+import com.loopers.domain.issue.CouponIssue;
 import com.loopers.domain.order.*;
-import com.loopers.domain.payment.PaymentRepository;
 import com.loopers.domain.point.PointModel;
 import com.loopers.domain.product.Product;
 import com.loopers.domain.user.Gender;
 import com.loopers.domain.user.UserModel;
+import com.loopers.infrastructure.coupon.CouponJpaRepository;
+import com.loopers.infrastructure.issue.CouponIssueJpaRepository;
 import com.loopers.infrastructure.order.OrderJpaRepository;
-import com.loopers.infrastructure.payment.PaymentJpaRepository;
 import com.loopers.infrastructure.point.PointJpaRepository;
 import com.loopers.infrastructure.product.ProductJpaRepository;
 import com.loopers.infrastructure.user.UserJpaRepository;
 import com.loopers.support.error.CoreException;
 import com.loopers.support.error.ErrorType;
 import com.loopers.utils.DatabaseCleanUp;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Nested;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 @SpringBootTest
 public class OrderFacadeIntegrationTest {
@@ -41,14 +48,18 @@ public class OrderFacadeIntegrationTest {
 
     @Autowired
     private PointJpaRepository pointJpaRepository;
-
     @Autowired
     private ProductJpaRepository productJpaRepository;
-
     @Autowired
     private DatabaseCleanUp databaseCleanUp;
     @Autowired
     private OrderJpaRepository orderJpaRepository;
+    @Autowired
+    private CouponJpaRepository couponJpaRepository;
+    @Autowired
+    private CouponIssueJpaRepository customerCouponIssueJpaRepository;
+    @Autowired
+    private CouponIssueJpaRepository couponIssueJpaRepository;
 
     @AfterEach
     void tearDown() {
@@ -66,7 +77,7 @@ public class OrderFacadeIntegrationTest {
             orderItemList.add(OrderCommand.Order.OrderItem.of(1L, 1));
             orderItemList.add(OrderCommand.Order.OrderItem.of(2L, 2));
             orderItemList.add(OrderCommand.Order.OrderItem.of(3L, 2));
-            OrderCommand.Order order = OrderCommand.Order.of(orderItemList, userId, "주소", "01000000000", "홍길동");
+            OrderCommand.Order order = OrderCommand.Order.of(orderItemList, userId, "주소", "01000000000", "홍길동", null);
 
             CoreException exception = assertThrows(CoreException.class, () -> orderFacade.order(order));
 
@@ -77,13 +88,15 @@ public class OrderFacadeIntegrationTest {
         @Test
         void throwsNotFound_whenProductNotFound() {
             UserModel userModel = UserModel.CreateUser("testId314", "test@test.com", Gender.MALE.name(), "2025-07-13");
-            userJpaRepository.save(userModel);
+            UserModel save = userJpaRepository.save(userModel);
+            PointModel pointModel = PointModel.create(save.getId(), BigDecimal.valueOf(1000));
+            pointJpaRepository.save(pointModel);
 
             List<OrderCommand.Order.OrderItem> orderItemList = new ArrayList<>();
             orderItemList.add(OrderCommand.Order.OrderItem.of(1L, 1));
             orderItemList.add(OrderCommand.Order.OrderItem.of(2L, 2));
             orderItemList.add(OrderCommand.Order.OrderItem.of(3L, 2));
-            OrderCommand.Order order = OrderCommand.Order.of(orderItemList, userModel.getUserId(), "주소", "01000000000", "홍길동");
+            OrderCommand.Order order = OrderCommand.Order.of(orderItemList, userModel.getUserId(), "주소", "01000000000", "홍길동", null);
 
             CoreException exception = assertThrows(CoreException.class, () -> orderFacade.order(order));
 
@@ -95,7 +108,7 @@ public class OrderFacadeIntegrationTest {
         void throwsBadRequest_whenInsufficientPoint() {
             UserModel userModel = UserModel.CreateUser("testId314", "test@test.com", Gender.MALE.name(), "2025-07-13");
             UserModel saveUser = userJpaRepository.save(userModel);
-            PointModel pointModel = PointModel.create(saveUser.getId(), 1000);
+            PointModel pointModel = PointModel.create(saveUser.getId(), BigDecimal.valueOf(1000));
             pointJpaRepository.save(pointModel);
 
             List<Product> productList = new ArrayList<>();
@@ -108,7 +121,7 @@ public class OrderFacadeIntegrationTest {
             orderItemList.add(OrderCommand.Order.OrderItem.of(1L, 1));
             orderItemList.add(OrderCommand.Order.OrderItem.of(2L, 2));
             orderItemList.add(OrderCommand.Order.OrderItem.of(3L, 2));
-            OrderCommand.Order order = OrderCommand.Order.of(orderItemList, userModel.getUserId(), "주소", "01000000000", "홍길동");
+            OrderCommand.Order order = OrderCommand.Order.of(orderItemList, userModel.getUserId(), "주소", "01000000000", "홍길동", null);
 
             CoreException exception = assertThrows(CoreException.class, () -> orderFacade.order(order));
 
@@ -120,7 +133,7 @@ public class OrderFacadeIntegrationTest {
         void throwsBadRequest_whenInsufficientStock() {
             UserModel userModel = UserModel.CreateUser("testId314", "test@test.com", Gender.MALE.name(), "2025-07-13");
             UserModel saveUser = userJpaRepository.save(userModel);
-            PointModel pointModel = PointModel.create(saveUser.getId(), 1000);
+            PointModel pointModel = PointModel.create(saveUser.getId(), BigDecimal.valueOf(1000));
             pointJpaRepository.save(pointModel);
 
             List<Product> productList = new ArrayList<>();
@@ -133,7 +146,7 @@ public class OrderFacadeIntegrationTest {
             orderItemList.add(OrderCommand.Order.OrderItem.of(1L, 10));
             orderItemList.add(OrderCommand.Order.OrderItem.of(2L, 2));
             orderItemList.add(OrderCommand.Order.OrderItem.of(3L, 2));
-            OrderCommand.Order order = OrderCommand.Order.of(orderItemList, userModel.getUserId(), "주소", "01000000000", "홍길동");
+            OrderCommand.Order order = OrderCommand.Order.of(orderItemList, userModel.getUserId(), "주소", "01000000000", "홍길동", null);
 
             CoreException exception = assertThrows(CoreException.class, () -> orderFacade.order(order));
 
@@ -144,7 +157,7 @@ public class OrderFacadeIntegrationTest {
         void savesOrderAndPayment_whenValidRequest() {
             UserModel userModel = UserModel.CreateUser("testId314", "test@test.com", Gender.MALE.name(), "2025-07-13");
             UserModel saveUser = userJpaRepository.save(userModel);
-            PointModel pointModel = PointModel.create(saveUser.getId(), 10000);
+            PointModel pointModel = PointModel.create(saveUser.getId(), BigDecimal.valueOf(10000));
             pointJpaRepository.save(pointModel);
 
             Product product1 = productJpaRepository.save(Product.create(9999L, "상의", 1000, 5));  // name: 상의
@@ -155,15 +168,333 @@ public class OrderFacadeIntegrationTest {
             orderItemList.add(OrderCommand.Order.OrderItem.of(product1.getId(), 2));
             orderItemList.add(OrderCommand.Order.OrderItem.of(product2.getId(), 2));
             orderItemList.add(OrderCommand.Order.OrderItem.of(product3.getId(), 2));
-            OrderCommand.Order order = OrderCommand.Order.of(orderItemList, userModel.getUserId(), "주소", "01000000000", "홍길동");
+            OrderCommand.Order order = OrderCommand.Order.of(orderItemList, userModel.getUserId(), "주소", "01000000000", "홍길동", null);
 
             OrderInfo.OrderResponse orderResponse = orderFacade.order(order);
 
             Optional<OrderModel> orderModel = orderJpaRepository.findById(orderResponse.orderId());
 
             assertThat(orderModel).isPresent();
-            assertThat(orderModel.get().getAmount()).isEqualTo(3200);
+            assertThat(orderModel.get().getAmount().doubleValue()).isEqualTo(3200);
             assertThat(orderModel.get().getOrderStatus()).isEqualTo(OrderStatus.PAID);
+
+        }
+        @DisplayName("쿠폰이 없는 쿠폰이면 주문 요청에 실패한다.")
+        @Test
+        void throwsBadRequest_whenCouponNotFound() {
+            UserModel userModel = UserModel.CreateUser("testId314", "test@test.com", Gender.MALE.name(), "2025-07-13");
+            UserModel saveUser = userJpaRepository.save(userModel);
+            PointModel pointModel = PointModel.create(saveUser.getId(), BigDecimal.valueOf(10000));
+            pointJpaRepository.save(pointModel);
+
+            Product product1 = productJpaRepository.save(Product.create(9999L, "상의", 1000, 5));  // name: 상의
+            Product product2 = productJpaRepository.save(Product.create(9999L, "하의", 500, 5));  // name: 하의
+            Product product3 = productJpaRepository.save(Product.create(9999L, "신발", 100, 5));   // name: 신발
+
+            List<OrderCommand.Order.OrderItem> orderItemList = new ArrayList<>();
+            orderItemList.add(OrderCommand.Order.OrderItem.of(product1.getId(), 2));
+            orderItemList.add(OrderCommand.Order.OrderItem.of(product2.getId(), 2));
+            orderItemList.add(OrderCommand.Order.OrderItem.of(product3.getId(), 2));
+            OrderCommand.Order order = OrderCommand.Order.of(orderItemList, userModel.getUserId(), "주소", "01000000000", "홍길동", 999L);
+
+            CoreException exception = assertThrows(CoreException.class, () -> orderFacade.order(order));
+
+            assertThat(exception.getErrorType()).isEqualTo(ErrorType.BAD_REQUEST);
+
+        }
+        @DisplayName("쿠폰은 있지만 사용자에 없는 쿠폰이면 주문 요청에 실패한다.")
+        @Test
+        void throwsBadRequest_whenCouponIssueNotFound() {
+            UserModel userModel = UserModel.CreateUser("testId314", "test@test.com", Gender.MALE.name(), "2025-07-13");
+            UserModel saveUser = userJpaRepository.save(userModel);
+            PointModel pointModel = PointModel.create(saveUser.getId(), BigDecimal.valueOf(10000));
+            pointJpaRepository.save(pointModel);
+            Coupon savedCoupon = couponJpaRepository.save(Coupon.create(CouponType.FIXED, BigDecimal.valueOf(1000)));
+
+            Product product1 = productJpaRepository.save(Product.create(9999L, "상의", 1000, 5));  // name: 상의
+            Product product2 = productJpaRepository.save(Product.create(9999L, "하의", 500, 5));  // name: 하의
+            Product product3 = productJpaRepository.save(Product.create(9999L, "신발", 100, 5));   // name: 신발
+
+            List<OrderCommand.Order.OrderItem> orderItemList = new ArrayList<>();
+            orderItemList.add(OrderCommand.Order.OrderItem.of(product1.getId(), 2));
+            orderItemList.add(OrderCommand.Order.OrderItem.of(product2.getId(), 2));
+            orderItemList.add(OrderCommand.Order.OrderItem.of(product3.getId(), 2));
+            OrderCommand.Order order = OrderCommand.Order.of(orderItemList, userModel.getUserId(), "주소", "01000000000", "홍길동", savedCoupon.getId());
+
+            CoreException exception = assertThrows(CoreException.class, () -> orderFacade.order(order));
+
+            assertThat(exception.getErrorType()).isEqualTo(ErrorType.BAD_REQUEST);
+
+        }
+
+        @DisplayName("이미 사용된 쿠폰이면 주문에 실패한다.")
+        @Test
+        void throwsBadRequest_whenAlreadyUsedCoupon() {
+
+            UserModel saveUser = userJpaRepository.save(UserModel.CreateUser("testId314", "test@test.com", Gender.MALE.name(), "2025-07-13"));
+            PointModel pointModel = PointModel.create(saveUser.getId(), BigDecimal.valueOf(10000));
+            pointJpaRepository.save(pointModel);
+            Coupon savedCoupon = couponJpaRepository.save(Coupon.create(CouponType.FIXED, BigDecimal.valueOf(1000)));
+
+            CouponIssue couponIssue = customerCouponIssueJpaRepository.save(CouponIssue.of(saveUser.getId(), savedCoupon.getId()));
+            couponIssue.use();
+            customerCouponIssueJpaRepository.saveAndFlush(couponIssue);
+            Product product1 = productJpaRepository.save(Product.create(9999L, "상의", 1000, 5));  // name: 상의
+            Product product2 = productJpaRepository.save(Product.create(9999L, "하의", 500, 5));  // name: 하의
+            Product product3 = productJpaRepository.save(Product.create(9999L, "신발", 100, 5));   // name: 신발
+
+            List<OrderCommand.Order.OrderItem> orderItemList = new ArrayList<>();
+            orderItemList.add(OrderCommand.Order.OrderItem.of(product1.getId(), 2));
+            orderItemList.add(OrderCommand.Order.OrderItem.of(product2.getId(), 2));
+            orderItemList.add(OrderCommand.Order.OrderItem.of(product3.getId(), 2));
+            OrderCommand.Order order = OrderCommand.Order.of(orderItemList, saveUser.getUserId(), "주소", "01000000000", "홍길동", savedCoupon.getId());
+
+            CoreException exception = assertThrows(CoreException.class, () -> orderFacade.order(order));
+
+            assertThat(exception.getErrorType()).isEqualTo(ErrorType.BAD_REQUEST);
+
+        }
+
+        @DisplayName("정액 쿠폰이 사용되면 정확한 포인트가 차감되고 쿠폰의 상태가 변경된다.")
+        @Test
+        void useFixedCoupon_deductsExactPoints_andUpdatesCouponStatusToUsed() {
+
+            UserModel saveUser = userJpaRepository.save(UserModel.CreateUser("testId314", "test@test.com", Gender.MALE.name(), "2025-07-13"));
+            PointModel pointModel = PointModel.create(saveUser.getId(), BigDecimal.valueOf(10000));
+            pointJpaRepository.save(pointModel);
+            Coupon savedCoupon = couponJpaRepository.save(Coupon.create(CouponType.FIXED, BigDecimal.valueOf(1000)));
+
+            CouponIssue couponIssue = customerCouponIssueJpaRepository.save(CouponIssue.of(saveUser.getId(), savedCoupon.getId()));
+            customerCouponIssueJpaRepository.saveAndFlush(couponIssue);
+            Product product1 = productJpaRepository.save(Product.create(9999L, "상의", 1000, 5));  // name: 상의
+            Product product2 = productJpaRepository.save(Product.create(9999L, "하의", 500, 5));  // name: 하의
+            Product product3 = productJpaRepository.save(Product.create(9999L, "신발", 100, 5));   // name: 신발
+
+            List<OrderCommand.Order.OrderItem> orderItemList = new ArrayList<>();
+            orderItemList.add(OrderCommand.Order.OrderItem.of(product1.getId(), 2));
+            orderItemList.add(OrderCommand.Order.OrderItem.of(product2.getId(), 2));
+            orderItemList.add(OrderCommand.Order.OrderItem.of(product3.getId(), 2));
+            OrderCommand.Order order = OrderCommand.Order.of(orderItemList, saveUser.getUserId(), "주소", "01000000000", "홍길동", savedCoupon.getId());
+
+            orderFacade.order(order);
+
+            Optional<PointModel> findPointModel = pointJpaRepository.findByUserUid(saveUser.getId());
+            Optional<CouponIssue> findCoupon = couponIssueJpaRepository.findById(couponIssue.getId());
+
+            assertAll(
+                    () -> assertThat(findPointModel.get().getPoint().doubleValue()).isEqualTo(7800),
+                    () -> assertThat(findCoupon.get().getUseFlag()).isEqualTo(1));
+
+        }
+
+        @DisplayName("정률 쿠폰이 사용되면 정확한 포인트가 차감되고 쿠폰의 상태가 변경된다.")
+        @Test
+        void usePercentCoupon_deductsExactPoints_andUpdatesCouponStatusToUsed() {
+
+            UserModel saveUser = userJpaRepository.save(UserModel.CreateUser("testId314", "test@test.com", Gender.MALE.name(), "2025-07-13"));
+            PointModel pointModel = PointModel.create(saveUser.getId(), BigDecimal.valueOf(10000));
+            pointJpaRepository.save(pointModel);
+            Coupon savedCoupon = couponJpaRepository.save(Coupon.create(CouponType.PERCENTAGE, BigDecimal.valueOf(50)));
+
+            CouponIssue couponIssue = customerCouponIssueJpaRepository.save(CouponIssue.of(saveUser.getId(), savedCoupon.getId()));
+            customerCouponIssueJpaRepository.saveAndFlush(couponIssue);
+            Product product1 = productJpaRepository.save(Product.create(9999L, "상의", 1000, 5));  // name: 상의
+            Product product2 = productJpaRepository.save(Product.create(9999L, "하의", 500, 5));  // name: 하의
+            Product product3 = productJpaRepository.save(Product.create(9999L, "신발", 100, 5));   // name: 신발
+
+            List<OrderCommand.Order.OrderItem> orderItemList = new ArrayList<>();
+            orderItemList.add(OrderCommand.Order.OrderItem.of(product1.getId(), 2));
+            orderItemList.add(OrderCommand.Order.OrderItem.of(product2.getId(), 2));
+            orderItemList.add(OrderCommand.Order.OrderItem.of(product3.getId(), 2));
+            OrderCommand.Order order = OrderCommand.Order.of(orderItemList, saveUser.getUserId(), "주소", "01000000000", "홍길동", savedCoupon.getId());
+
+            orderFacade.order(order);
+
+            Optional<PointModel> findPointModel = pointJpaRepository.findByUserUid(saveUser.getId());
+            Optional<CouponIssue> findCoupon = couponIssueJpaRepository.findById(couponIssue.getId());
+
+            assertAll(
+                    () -> assertThat(findPointModel.get().getPoint().doubleValue()).isEqualTo(8400),
+                    () -> assertThat(findCoupon.get().getUseFlag()).isEqualTo(1));
+
+        }
+
+    }
+    @DisplayName("동시에 주문 요청이 올 때")
+    @Nested
+    class ConcurrencyOrders {
+        @DisplayName("다른 유저로 들어왔을때 재고와 포인트가 정확히 차감된다.")
+        @Test
+        void shouldDeductStockAndPointCorrectlyForDifferentUser() throws InterruptedException {
+
+            UserModel user1 = userJpaRepository.save(UserModel.CreateUser("testUser1", "user1@test.com", Gender.MALE.name(), "2025-07-13"));
+            pointJpaRepository.save(PointModel.create(user1.getId(), BigDecimal.valueOf(10000)));
+
+            UserModel user2 = userJpaRepository.save(UserModel.CreateUser("testUser2", "user2@test.com", Gender.FEMALE.name(), "2025-07-13"));
+            pointJpaRepository.save(PointModel.create(user2.getId(), BigDecimal.valueOf(5000)));
+
+            Product product1 = productJpaRepository.save(Product.create(9999L, "상의", 100, 30));
+            Product product2 = productJpaRepository.save(Product.create(9999L, "하의", 100, 30));
+
+            List<OrderCommand.Order.OrderItem> items = List.of(
+                    OrderCommand.Order.OrderItem.of(product1.getId(), 2),
+                    OrderCommand.Order.OrderItem.of(product2.getId(), 3)
+            );
+
+            // 주문 객체 2개 (유저별)
+            OrderCommand.Order order1 = OrderCommand.Order.of(items, user1.getUserId(), "서울시", "01012345678", "홍길동", null);
+            OrderCommand.Order order2 = OrderCommand.Order.of(items, user2.getUserId(), "부산시", "01098765432", "임꺽정", null);
+
+            int threadCount = 10;
+            ExecutorService executorService = Executors.newFixedThreadPool(threadCount);
+            CountDownLatch latch = new CountDownLatch(threadCount);
+
+            for (int i = 0; i < threadCount; i++) {
+                int finalI = i;
+                executorService.submit(() -> {
+                    try {
+                        if (finalI % 2 == 0) {
+                            orderFacade.order(order1); // 유저1
+                        } else {
+                            orderFacade.order(order2); // 유저2
+                        }
+                    } finally {
+                        latch.countDown();
+                    }
+                });
+            }
+
+            latch.await();
+
+            executorService.shutdown();
+            executorService.awaitTermination(10, TimeUnit.SECONDS);
+
+            PointModel pointModel1 = pointJpaRepository.findByUserUid(user1.getId()).get();
+            PointModel pointModel2 = pointJpaRepository.findByUserUid(user2.getId()).get();
+            Product testProduct1 = productJpaRepository.findById(product1.getId()).get();
+            Product testProduct2 = productJpaRepository.findById(product2.getId()).get();
+
+
+            assertAll(
+                    () -> assertThat(pointModel1.getPoint().doubleValue()).isEqualTo(7500), // 10번 성공 2500차감
+                    () -> assertThat(pointModel2.getPoint().doubleValue()).isEqualTo(2500), // 10번 성공 2500차감
+                    () -> assertThat(testProduct1.getQuantity()).isEqualTo(10), // 10번 성공 20 차감
+                    () -> assertThat(testProduct2.getQuantity()).isEqualTo(0)); // 10번 성공 30 차감
+
+        }
+        @DisplayName("같은 유저로 주문 요청시 정확히 차감된다.")
+        @Test
+        void shouldDeductStockAndPointCorrectlyForSameUser() throws InterruptedException {
+            // given
+            UserModel userModel = UserModel.CreateUser("testUser1", "test@test.com", Gender.MALE.name(), "2025-07-13");
+            UserModel savedUser = userJpaRepository.save(userModel);
+            pointJpaRepository.save(PointModel.create(savedUser.getId(), BigDecimal.valueOf(10000)));// 총 1만원
+
+
+            Product product1 = productJpaRepository.save(Product.create(9999L, "상의", 100, 25));
+            Product product2 = productJpaRepository.save(Product.create(9999L, "하의", 100, 30));
+
+            List<OrderCommand.Order.OrderItem> items = List.of(
+                    OrderCommand.Order.OrderItem.of(product1.getId(), 2),
+                    OrderCommand.Order.OrderItem.of(product2.getId(), 3)
+            );
+
+            OrderCommand.Order order = OrderCommand.Order.of(
+                    items,
+                    savedUser.getUserId(),
+                    "서울시",
+                    "01012345678",
+                    "홍길동",
+                    null
+            );
+
+            int threadCount = 5;
+            ExecutorService executorService = Executors.newFixedThreadPool(threadCount);
+            CountDownLatch latch = new CountDownLatch(threadCount);
+
+            for (int i = 0; i < threadCount; i++) {
+                executorService.submit(() -> {
+                    try {
+                        orderFacade.order(order); // 주문 시도
+                    }finally {
+                        latch.countDown();
+                    }
+
+                });
+            }
+
+            latch.await();
+
+            executorService.shutdown();
+            executorService.awaitTermination(10, TimeUnit.SECONDS);
+
+            PointModel pointModel1 = pointJpaRepository.findByUserUid(savedUser.getId()).get();
+            Product testProduct1 = productJpaRepository.findById(product1.getId()).get();
+            Product testProduct2 = productJpaRepository.findById(product2.getId()).get();
+
+            assertAll(
+                    () -> assertThat(pointModel1.getPoint().doubleValue()).isEqualTo(7500),
+                    () -> assertThat(testProduct1.getQuantity()).isEqualTo(15),
+                    () -> assertThat(testProduct2.getQuantity()).isEqualTo(15));
+
+        }
+        @DisplayName("동일한 쿠폰을 동시에 사용시, 한번만 성공한다.")
+        @Test
+        void succeedsOnlyOnce_whenSameCouponUsedConcurrently() throws InterruptedException {
+            // given
+            UserModel userModel = UserModel.CreateUser("testUser1", "test@test.com", Gender.MALE.name(), "2025-07-13");
+            UserModel savedUser = userJpaRepository.save(userModel);
+            pointJpaRepository.save(PointModel.create(savedUser.getId(), BigDecimal.valueOf(10000)));// 총 1만원
+            Coupon savedCoupon = couponJpaRepository.save(Coupon.create(CouponType.FIXED, BigDecimal.valueOf(100)));
+
+            CouponIssue couponIssue = customerCouponIssueJpaRepository.save(CouponIssue.of(savedUser.getId(), savedCoupon.getId()));
+
+            Product product1 = productJpaRepository.save(Product.create(9999L, "상의", 100, 25));
+            Product product2 = productJpaRepository.save(Product.create(9999L, "하의", 100, 30));
+
+            List<OrderCommand.Order.OrderItem> items = List.of(
+                    OrderCommand.Order.OrderItem.of(product1.getId(), 2),
+                    OrderCommand.Order.OrderItem.of(product2.getId(), 3)
+            );
+
+            OrderCommand.Order order = OrderCommand.Order.of(
+                    items,
+                    savedUser.getUserId(),
+                    "서울시",
+                    "01012345678",
+                    "홍길동",
+                    savedCoupon.getId()
+            );
+
+            int threadCount = 5;
+            ExecutorService executorService = Executors.newFixedThreadPool(threadCount);
+            CountDownLatch latch = new CountDownLatch(threadCount);
+
+            for (int i = 0; i < threadCount; i++) {
+                executorService.submit(() -> {
+                    try {
+                        orderFacade.order(order); // 주문 시도
+                    }finally {
+                        latch.countDown();
+                    }
+
+                });
+            }
+
+            latch.await();
+
+            executorService.shutdown();
+            executorService.awaitTermination(10, TimeUnit.SECONDS);
+
+            PointModel pointModel1 = pointJpaRepository.findByUserUid(savedUser.getId()).get();
+            Product testProduct1 = productJpaRepository.findById(product1.getId()).get();
+            Product testProduct2 = productJpaRepository.findById(product2.getId()).get();
+            CouponIssue findCoupon = couponIssueJpaRepository.findById(couponIssue.getId()).get();
+            assertAll(
+                    () -> assertThat(pointModel1.getPoint().doubleValue()).isEqualTo(9600),
+                    () -> assertThat(testProduct1.getQuantity()).isEqualTo(23),
+                    () -> assertThat(testProduct2.getQuantity()).isEqualTo(27),
+                    () -> assertThat(findCoupon.getUseFlag()).isEqualTo(1));
 
         }
 
@@ -199,11 +530,11 @@ public class OrderFacadeIntegrationTest {
         void returnsOrderDataList_whenOrderFound() {
             UserModel userModel = UserModel.CreateUser("testId314", "test@test.com", Gender.MALE.name(), "2025-07-13");
             UserModel savedUser = userJpaRepository.save(userModel);
-            OrderModel orderModel = OrderModel.create(savedUser.getId(), 1000, Address.of("주소", "01000000000", "받는사람"));
+            OrderModel orderModel = OrderModel.create(savedUser.getId(), BigDecimal.valueOf(1000), Address.of("주소", "01000000000", "받는사람"), null);
             orderModel.addOrderItem(OrderItem.create(9999L, 5));
             orderModel.addOrderItem(OrderItem.create(9998L, 4));
             orderJpaRepository.save(orderModel);
-            OrderModel orderModel2 = OrderModel.create(savedUser.getId(), 1000, Address.of("주소", "01000000000", "받는사람"));
+            OrderModel orderModel2 = OrderModel.create(savedUser.getId(), BigDecimal.valueOf(1000), Address.of("주소", "01000000000", "받는사람"), null);
             orderModel2.addOrderItem(OrderItem.create(9997L, 2));
             orderJpaRepository.save(orderModel2);
 
@@ -225,7 +556,7 @@ public class OrderFacadeIntegrationTest {
             String userId = "notFound";
             UserModel userModel = UserModel.CreateUser("testId314", "test@test.com", Gender.MALE.name(), "2025-07-13");
             UserModel sevedUser = userJpaRepository.save(userModel);
-            OrderModel orderModel2 = OrderModel.create(sevedUser.getId(), 1000, Address.of("주소", "01000000000", "받는사람"));
+            OrderModel orderModel2 = OrderModel.create(sevedUser.getId(), BigDecimal.valueOf(1000), Address.of("주소", "01000000000", "받는사람"), null);
             orderModel2.addOrderItem(OrderItem.create(9997L, 2));
             OrderModel order = orderJpaRepository.save(orderModel2);
             OrderCommand.GetOrder getOrder = OrderCommand.GetOrder.of(userId, order.getId());
@@ -254,7 +585,7 @@ public class OrderFacadeIntegrationTest {
 
             UserModel sevedUser = userJpaRepository.save(userModel);
 
-            OrderModel orderModel2 = OrderModel.create(sevedUser.getId(), 1000, Address.of("주소", "01000000000", "받는사람"));
+            OrderModel orderModel2 = OrderModel.create(sevedUser.getId(), BigDecimal.valueOf(1000), Address.of("주소", "01000000000", "받는사람"), null);
             orderModel2.addOrderItem(OrderItem.create(9997L, 2));
             OrderModel order = orderJpaRepository.save(orderModel2);
             OrderCommand.GetOrder getOrder = OrderCommand.GetOrder.of(userModel.getUserId(), order.getId());
@@ -262,7 +593,7 @@ public class OrderFacadeIntegrationTest {
             OrderInfo.OrderData orderData = orderFacade.getOrder(getOrder);
 
             assertThat(orderData).isNotNull();
-            assertThat(orderData.order().getAmount()).isEqualTo(order.getAmount());
+            assertThat(orderData.order().getAmount().doubleValue()).isEqualTo(order.getAmount().doubleValue());
             assertThat(orderData.order().getUserUid()).isEqualTo(order.getUserUid());
         }
     }

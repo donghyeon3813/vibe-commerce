@@ -7,6 +7,8 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
+import java.math.BigDecimal;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
@@ -19,9 +21,10 @@ public class PointModelTest {
         @ParameterizedTest
         @ValueSource(ints = {0, -1})
         void throwsException_whenPointInvalid(int point) {
-            PointModel pointModel = PointModel.create(1L, 100);
 
-            CoreException result = assertThrows(CoreException.class, () -> pointModel.changePoint(point));
+            PointModel pointModel = PointModel.create(1L, BigDecimal.valueOf(1000));
+
+            CoreException result = assertThrows(CoreException.class, () -> pointModel.changePoint(BigDecimal.valueOf(point)));
 
             assertThat(result.getErrorType()).isEqualTo(ErrorType.BAD_REQUEST);
 
@@ -35,9 +38,9 @@ public class PointModelTest {
         @ParameterizedTest
         @ValueSource(ints = {0, -1})
         void throwsException_whenPointInvalid(int point) {
-            PointModel pointModel = PointModel.create(1L, 100);
+            PointModel pointModel = PointModel.create(1L, BigDecimal.valueOf(100));
 
-            CoreException result = assertThrows(CoreException.class, () -> pointModel.deduct(point));
+            CoreException result = assertThrows(CoreException.class, () -> pointModel.deduct(BigDecimal.valueOf(point)));
 
             assertThat(result.getErrorType()).isEqualTo(ErrorType.BAD_REQUEST);
 
@@ -47,9 +50,9 @@ public class PointModelTest {
         @ParameterizedTest
         @ValueSource(ints = {500})
         void throwsException_whenPointLack(int point) {
-            PointModel pointModel = PointModel.create(1L, 100);
+            PointModel pointModel = PointModel.create(1L, BigDecimal.valueOf(100));
 
-            CoreException result = assertThrows(CoreException.class, () -> pointModel.deduct(point));
+            CoreException result = assertThrows(CoreException.class, () -> pointModel.deduct(BigDecimal.valueOf(point)));
 
             assertThat(result.getErrorType()).isEqualTo(ErrorType.BAD_REQUEST);
 
@@ -59,11 +62,11 @@ public class PointModelTest {
         @ParameterizedTest
         @ValueSource(ints = {500})
         void deduct_when_sufficient(int point) {
-            PointModel pointModel = PointModel.create(1L, 1000);
+            PointModel pointModel = PointModel.create(1L, BigDecimal.valueOf(1000));
 
-            pointModel.deduct(point);
+            pointModel.deduct(BigDecimal.valueOf(point));
 
-            assertThat(pointModel.getPoint()).isEqualTo(1000 - point);
+            assertThat(pointModel.getPoint().doubleValue()).isEqualTo(1000 - point);
 
         }
     }

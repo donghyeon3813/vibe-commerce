@@ -12,4 +12,6 @@ public interface ProductRepository {
     List<ProductData> findByPageable(Long brandUid, Pageable pageable);
 
     List<Product> findByProductUids(Set<Long> productUids);
+
+    List<Product> findByProductUidsForUpdate(Set<Long> productUids);
 }

@@ -12,6 +12,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
+
 @RequiredArgsConstructor
 @Component
 public class UserFacade {
@@ -21,7 +23,7 @@ public class UserFacade {
     @Transactional
     public UserInfo createUser(UserV1Dto.SignupRequest signupRequest) {
         UserModel user = userService.createUser(signupRequest);
-        pointService.createPoint(PointCreateInfo.of(user.getId(), 0));
+        pointService.createPoint(PointCreateInfo.of(user.getId(), BigDecimal.valueOf(0)));
         return UserInfo.create(user);
     }
 
