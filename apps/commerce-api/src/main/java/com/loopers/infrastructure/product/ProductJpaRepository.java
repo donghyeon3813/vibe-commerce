@@ -14,12 +14,11 @@ import java.util.Set;
 
 public interface ProductJpaRepository extends JpaRepository<Product, Long> {
     @Query(value = """ 
-        SELECT new com.loopers.domain.product.ProductData(p.name, p.amount, p.quantity, b.name, COUNT(l.id) AS likeCount)
+        SELECT new com.loopers.domain.product.ProductData(p.name, p.amount, p.quantity, b.name,  COALESCE(l.likeCount, 0) as likeCount)
             FROM Product p
             JOIN Brand b ON p.brandUid = b.id
-            LEFT JOIN Like l ON l.productUid = p.id
-            WHERE (:brandUid IS NULL OR b.id = :brandUid)
-            GROUP BY p.id, p.name, p.amount, p.quantity, b.name""")
+            LEFT JOIN ProductLike l ON l.productId = p.id
+            WHERE (:brandUid IS NULL OR b.id = :brandUid)""")
     List<ProductData> findAllByPageable(@Param("brandUid") Long brandUid, Pageable pageable);
 
     List<Product> findIdByIdIn(Set<Long> productUids);

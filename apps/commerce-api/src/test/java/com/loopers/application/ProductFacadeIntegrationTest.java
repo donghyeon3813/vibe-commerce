@@ -7,9 +7,11 @@ import com.loopers.domain.brand.Brand;
 import com.loopers.domain.like.Like;
 import com.loopers.domain.product.Product;
 import com.loopers.domain.product.ProductData;
+import com.loopers.domain.productlike.ProductLike;
 import com.loopers.infrastructure.brand.BrandJpaRepository;
 import com.loopers.infrastructure.like.LikeJpaRepository;
 import com.loopers.infrastructure.product.ProductJpaRepository;
+import com.loopers.infrastructure.productlike.ProductLikeJpaRepository;
 import com.loopers.support.error.CoreException;
 import com.loopers.support.error.ErrorType;
 import com.loopers.utils.DatabaseCleanUp;
@@ -39,7 +41,8 @@ public class ProductFacadeIntegrationTest {
     private BrandJpaRepository brandJpaRepository;
     @Autowired
     private LikeJpaRepository likeJpaRepository;
-
+    @Autowired
+    private ProductLikeJpaRepository productLikeJpaRepository;
 
     @AfterEach
     void tearDown() {
@@ -53,7 +56,7 @@ public class ProductFacadeIntegrationTest {
         @Test
         void returnsEmpty_whenUserExistsAndChargesSuccessfully() {
             ProductCommand.ListInfoRequest getList = ProductCommand.ListInfoRequest.of(
-                    99999L,
+                    999999L,
                     ProductCommand.ListInfoRequest.Sort.LIKE_DESC,
                     0,
                     20
@@ -76,6 +79,8 @@ public class ProductFacadeIntegrationTest {
             productList.add(Product.create(savedBrand.getId(), "하의", 1000, 5));
             productList.add(Product.create(savedBrand.getId(), "신발", 1000, 5));
             productJpaRepository.saveAll(productList);
+
+//            productLikeJpaRepository.save(ProductLike.o)
 
             ProductCommand.ListInfoRequest getList = ProductCommand.ListInfoRequest.of(
                     savedBrand.getId(),
@@ -104,6 +109,8 @@ public class ProductFacadeIntegrationTest {
             likeJpaRepository.save(new Like(9998L, product2.getId()));
             likeJpaRepository.save(new Like(9997L, product3.getId()));
 
+            productLikeJpaRepository.save(ProductLike.of(product2.getId(), 2));
+            productLikeJpaRepository.save(ProductLike.of(product3.getId(), 1));
             ProductCommand.ListInfoRequest likeDesc = ProductCommand.ListInfoRequest.of(
                     savedBrand.getId(), ProductCommand.ListInfoRequest.Sort.LATEST, 0, 10);
             ProductInfo.ProductListInfo latestSortedList = productFacade.getProductList(likeDesc);

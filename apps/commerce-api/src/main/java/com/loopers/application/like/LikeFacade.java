@@ -9,16 +9,20 @@ import com.loopers.domain.product.Product;
 import com.loopers.domain.product.ProductData;
 import com.loopers.domain.product.ProductDetailComposer;
 import com.loopers.domain.product.ProductService;
+import com.loopers.domain.productlike.ProductLike;
+import com.loopers.domain.productlike.ProductLikeService;
 import com.loopers.domain.user.UserModel;
 import com.loopers.domain.user.UserService;
 import com.loopers.support.error.CoreException;
 import com.loopers.support.error.ErrorType;
 import lombok.RequiredArgsConstructor;
+import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -31,8 +35,11 @@ public class LikeFacade {
     private final ProductService productService;
     private final BrandService brandService;
     private final ProductDetailComposer productDetailComposer;
+    private final ProductLikeService productLikeService;
+
 
     @Transactional
+    @Retryable
     public void register(LikeCommand.RegisterDto registerDto) {
 
         UserModel user = userService.getUser(registerDto.userId());
@@ -43,9 +50,17 @@ public class LikeFacade {
                 .orElseThrow(() -> new CoreException(ErrorType.NOT_FOUND, "상품을 찾을 수 없습니다."));
 
         likeService.resist(user.getId(), registerDto.productId());
+        Optional<ProductLike> productLikeForUpdate = productLikeService.getProductLike(registerDto.productId());
+        if (productLikeForUpdate.isPresent()) {
+            productLikeForUpdate.get().increment();
+        }else {
+            productLikeService.saveProductLike(registerDto.productId(), 1).increment();
+        }
+
     }
 
     @Transactional
+    @Retryable
     public void delete(LikeCommand.DeleteDto deleteDto) {
         UserModel user = userService.getUser(deleteDto.userId());
         if (user == null) {
@@ -53,6 +68,8 @@ public class LikeFacade {
         }
 
         likeService.unLike(user.getId(), deleteDto.productId());
+        Optional<ProductLike> productLikeForUpdate = productLikeService.getProductLike(deleteDto.productId());
+        productLikeForUpdate.ifPresent(ProductLike::decrement);
     }
 
     @Transactional(readOnly = true)
