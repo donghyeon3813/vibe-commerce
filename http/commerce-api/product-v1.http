@@ -1,1 +1,1 @@
-GET {{commerce-api}}/api/v1/products?brandId=141&page=1&size=40&sort=LIKE_DESC
+GET {{commerce-api}}/api/v1/products?brandId=0&page=1&size=20&sort=LIKE_DESC
