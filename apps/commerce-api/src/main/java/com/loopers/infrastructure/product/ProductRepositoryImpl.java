@@ -15,6 +15,7 @@ import java.util.Set;
 @RequiredArgsConstructor
 public class ProductRepositoryImpl implements ProductRepository {
     private final ProductJpaRepository productJpaRepository;
+    private final ProductQueryDslImpl productQueryDsl;
 
     @Override
     public Optional<Product> findByProductId(Long id) {
@@ -23,7 +24,7 @@ public class ProductRepositoryImpl implements ProductRepository {
 
     @Override
     public List<ProductData> findByPageable(Long brandUid, Pageable pageable) {
-        return productJpaRepository.findAllByPageable(brandUid, pageable);
+        return productQueryDsl.findAllByPageable(brandUid, pageable);
     }
 
     @Override
