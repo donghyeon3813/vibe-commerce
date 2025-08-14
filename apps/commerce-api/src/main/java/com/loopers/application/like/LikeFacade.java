@@ -46,7 +46,7 @@ public class LikeFacade {
         if (user == null) {
             throw new CoreException(ErrorType.NOT_FOUND, "사용자를 찾을 수 없습니다.");
         }
-        productService.getProductInfo(registerDto.productId())
+        Product product = productService.getProductInfo(registerDto.productId())
                 .orElseThrow(() -> new CoreException(ErrorType.NOT_FOUND, "상품을 찾을 수 없습니다."));
 
         likeService.resist(user.getId(), registerDto.productId());
@@ -54,7 +54,7 @@ public class LikeFacade {
         if (productLikeForUpdate.isPresent()) {
             productLikeForUpdate.get().increment();
         }else {
-            productLikeService.saveProductLike(registerDto.productId(), 1).increment();
+            productLikeService.saveProductLike(registerDto.productId(), 1, product.getBrandUid()).increment();
         }
 
     }

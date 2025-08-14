@@ -33,16 +33,11 @@ public class ProductFacade {
 
 @Transactional(readOnly = true)
     public ProductInfo.ProductListInfo getProductList(ProductCommand.ListInfoRequest productCommand) {
-    System.out.println("productCommand.size = " + productCommand.size);
-    System.out.println("productCommand.brandId = " + productCommand.brandId);
-    System.out.println("productCommand.page = " + productCommand.page);
-    System.out.println("productCommand.sort.field = " + productCommand.sort.field);
+
         Sort sort = Sort.by(productCommand.sort.getDirection(), productCommand.sort.getField());
 
         Pageable pageable = PageRequest.of(productCommand.getPage(), productCommand.getSize(), sort);
-
         List<ProductData> productList = productService.getProductList(productCommand.brandId, pageable);
-
 
         return ProductInfo.ProductListInfo.from(productList);
     }

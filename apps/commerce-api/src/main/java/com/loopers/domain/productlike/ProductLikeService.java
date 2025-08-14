@@ -16,7 +16,7 @@ public class ProductLikeService {
 
     }
     @Transactional
-    public ProductLike saveProductLike(Long productUid, long likeCount) {
-        return productLikeRepository.save(ProductLike.of(productUid,likeCount));
+    public ProductLike saveProductLike(Long productUid, long likeCount, Long brandUid) {
+        return productLikeRepository.save(ProductLike.of(productUid, likeCount, brandUid));
     }
 }

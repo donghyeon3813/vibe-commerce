@@ -1,6 +1,7 @@
 package com.loopers.domain.product;
 
 import com.loopers.infrastructure.product.ProductJpaRepository;
+import com.loopers.infrastructure.product.ProductQueryDslImpl;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -19,6 +20,8 @@ public class ProductServiceTest {
 
     @MockitoSpyBean
     private ProductJpaRepository productJpaRepository;
+    @MockitoSpyBean
+    private ProductQueryDslImpl productQueryDsl;
 
     @DisplayName("상품 목록을 조회할 때")
     @Nested
@@ -31,7 +34,7 @@ public class ProductServiceTest {
 
             productService.getProductList(brandId, pageable);
 
-            verify(productJpaRepository, times(1)).findAllByPageable(brandId, pageable);
+            verify(productQueryDsl, times(1)).findAllByPageable(brandId, pageable);
         }
     }
 

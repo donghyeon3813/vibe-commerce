@@ -41,7 +41,7 @@ public class ProductLikeServiceIntegrationTest {
             Long productId = 1L;
             likeJpaRepository.save(Like.create(13L, productId));
             likeJpaRepository.save(Like.create(14L, productId));
-            productLikeJpaRepository.save(ProductLike.of(1L, 2));
+            productLikeJpaRepository.save(ProductLike.of(1L, 2, 1L));
 
             Optional<ProductLike> productLike = productLikeService.getProductLike(productId);
 

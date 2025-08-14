@@ -18,19 +18,24 @@ public class ProductLike {
     @Id
     private Long productId;
     private long likeCount;
+    private Long brandUid;
     @Version
     private long version;
 
-    private ProductLike(Long productId, long likeCount) {
+    private ProductLike(Long productId, long likeCount, long brandUid) {
         this.productId = productId;
         this.likeCount = likeCount;
+        this.brandUid = brandUid;
     }
 
-    public static ProductLike of(Long productId, long likeCount) {
+    public static ProductLike of(Long productId, long likeCount, Long brandUid) {
         if(productId == null){
             throw new CoreException(ErrorType.BAD_REQUEST, "productId는 null 일 수 없습니다.");
         }
-        return new ProductLike(productId, likeCount);
+        if(brandUid == null){
+            throw new CoreException(ErrorType.BAD_REQUEST, "productId는 null 일 수 없습니다.");
+        }
+        return new ProductLike(productId, likeCount, brandUid);
     }
 
     public void increment() {

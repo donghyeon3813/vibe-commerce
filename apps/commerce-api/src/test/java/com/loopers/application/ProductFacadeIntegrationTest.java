@@ -74,13 +74,16 @@ public class ProductFacadeIntegrationTest {
         void returnsProductListInfo_whenUserExistsAndChargesSuccessfully() {
             Brand brand = Brand.create("무신사");
             Brand savedBrand = brandJpaRepository.save(brand);
-            List<Product> productList = new ArrayList<>();
-            productList.add(Product.create(9999L, "상의", 1000, 5));
-            productList.add(Product.create(savedBrand.getId(), "하의", 1000, 5));
-            productList.add(Product.create(savedBrand.getId(), "신발", 1000, 5));
-            productJpaRepository.saveAll(productList);
+            Product product1 = productJpaRepository.save(Product.create(savedBrand.getId(), "상의", 1000, 5));  // name: 상의
+            Product product2 = productJpaRepository.save(Product.create(savedBrand.getId(), "하의", 1300, 5));  // name: 하의
+            Product product3 = productJpaRepository.save(Product.create(savedBrand.getId(), "신발", 1200, 5));   // name: 신발
 
-//            productLikeJpaRepository.save(ProductLike.o)
+            likeJpaRepository.save(new Like(9999L, product2.getId()));
+            likeJpaRepository.save(new Like(9998L, product2.getId()));
+            likeJpaRepository.save(new Like(9997L, product3.getId()));
+            ProductLike save = productLikeJpaRepository.save(ProductLike.of(product1.getId(), 0L, savedBrand.getId()));
+            productLikeJpaRepository.save(ProductLike.of(product2.getId(), 2L,savedBrand.getId()));
+            productLikeJpaRepository.save(ProductLike.of(product3.getId(), 1L,savedBrand.getId()));
 
             ProductCommand.ListInfoRequest getList = ProductCommand.ListInfoRequest.of(
                     savedBrand.getId(),
@@ -91,7 +94,7 @@ public class ProductFacadeIntegrationTest {
             ProductInfo.ProductListInfo listInfo = productFacade.getProductList(getList);
 
             assertThat(listInfo).isNotNull();
-            assertThat(listInfo.products().size()).isEqualTo(2);
+            assertThat(listInfo.products().size()).isEqualTo(3);
 
         }
         @DisplayName("정렬 조건에 따라 상품 리스트가 정확히 정렬되어 반환된다")
@@ -108,20 +111,20 @@ public class ProductFacadeIntegrationTest {
             likeJpaRepository.save(new Like(9999L, product2.getId()));
             likeJpaRepository.save(new Like(9998L, product2.getId()));
             likeJpaRepository.save(new Like(9997L, product3.getId()));
-
-            productLikeJpaRepository.save(ProductLike.of(product2.getId(), 2));
-            productLikeJpaRepository.save(ProductLike.of(product3.getId(), 1));
-            ProductCommand.ListInfoRequest likeDesc = ProductCommand.ListInfoRequest.of(
+            productLikeJpaRepository.save(ProductLike.of(product1.getId(), 0, savedBrand.getId()));
+            productLikeJpaRepository.save(ProductLike.of(product2.getId(), 2, savedBrand.getId()));
+            productLikeJpaRepository.save(ProductLike.of(product3.getId(), 1, savedBrand.getId()));
+            ProductCommand.ListInfoRequest latest = ProductCommand.ListInfoRequest.of(
                     savedBrand.getId(), ProductCommand.ListInfoRequest.Sort.LATEST, 0, 10);
-            ProductInfo.ProductListInfo latestSortedList = productFacade.getProductList(likeDesc);
+            ProductInfo.ProductListInfo latestSortedList = productFacade.getProductList(latest);
 
-            ProductCommand.ListInfoRequest nameAsc = ProductCommand.ListInfoRequest.of(
+            ProductCommand.ListInfoRequest priceDec = ProductCommand.ListInfoRequest.of(
                     savedBrand.getId(), ProductCommand.ListInfoRequest.Sort.PRICE_ASC, 0, 10);
-            ProductInfo.ProductListInfo amountSortedList = productFacade.getProductList(nameAsc);
+            ProductInfo.ProductListInfo amountSortedList = productFacade.getProductList(priceDec);
 
-            ProductCommand.ListInfoRequest priceDesc = ProductCommand.ListInfoRequest.of(
+            ProductCommand.ListInfoRequest likeDec = ProductCommand.ListInfoRequest.of(
                     savedBrand.getId(), ProductCommand.ListInfoRequest.Sort.LIKE_DESC, 0, 10);
-            ProductInfo.ProductListInfo likeCountSortedList = productFacade.getProductList(priceDesc);
+            ProductInfo.ProductListInfo likeCountSortedList = productFacade.getProductList(likeDec);
 
             assertThat(latestSortedList.products())
                     .extracting(ProductData::productName)
@@ -142,18 +145,29 @@ public class ProductFacadeIntegrationTest {
 
             Brand brand = Brand.create("무신사");
             Brand savedBrand = brandJpaRepository.save(brand);
-            List<Product> productList = new ArrayList<>();
             //page1
-            productList.add(Product.create(savedBrand.getId(), "상의", 1000, 5));
-            productList.add(Product.create(savedBrand.getId(), "상의", 1000, 5));
-            productList.add(Product.create(savedBrand.getId(), "상의", 1000, 5));
-            productList.add(Product.create(savedBrand.getId(), "상의", 1000, 5));
-            productList.add(Product.create(savedBrand.getId(), "상의", 1000, 5));
-            //page2
-            productList.add(Product.create(savedBrand.getId(), "상의", 1000, 5));
-            productList.add(Product.create(savedBrand.getId(), "상의", 1000, 5));
+            Product product1 = productJpaRepository.save(Product.create(savedBrand.getId(), "상의", 1000, 5));  // name: 상의
+            Product product2 = productJpaRepository.save(Product.create(savedBrand.getId(), "하의", 1300, 5));  // name: 하의
+            Product product3 = productJpaRepository.save(Product.create(savedBrand.getId(), "신발", 1200, 5));   // name: 신발
+            Product product4 = productJpaRepository.save(Product.create(savedBrand.getId(), "신발", 1400, 5));   // name: 신발
+            Product product5 = productJpaRepository.save(Product.create(savedBrand.getId(), "신발", 1500, 5));   // name: 신발
+            Product product6 = productJpaRepository.save(Product.create(savedBrand.getId(), "신발", 1600, 5));   // name: 신발
+            Product product7 = productJpaRepository.save(Product.create(savedBrand.getId(), "신발", 1700, 5));   // name: 신발
+            likeJpaRepository.save(new Like(9999L, product2.getId()));
+            likeJpaRepository.save(new Like(9998L, product2.getId()));
+            likeJpaRepository.save(new Like(9997L, product3.getId()));
+            likeJpaRepository.save(new Like(9997L, product4.getId()));
+            likeJpaRepository.save(new Like(9997L, product5.getId()));
+            likeJpaRepository.save(new Like(9997L, product6.getId()));
+            likeJpaRepository.save(new Like(9997L, product7.getId()));
+            productLikeJpaRepository.save(ProductLike.of(product1.getId(), 0, savedBrand.getId()));
+            productLikeJpaRepository.save(ProductLike.of(product2.getId(), 2, savedBrand.getId()));
+            productLikeJpaRepository.save(ProductLike.of(product3.getId(), 1, savedBrand.getId()));
+            productLikeJpaRepository.save(ProductLike.of(product4.getId(), 1, savedBrand.getId()));
+            productLikeJpaRepository.save(ProductLike.of(product5.getId(), 1, savedBrand.getId()));
+            productLikeJpaRepository.save(ProductLike.of(product6.getId(), 1, savedBrand.getId()));
+            productLikeJpaRepository.save(ProductLike.of(product7.getId(), 1, savedBrand.getId()));
 
-            productJpaRepository.saveAll(productList);
 
             ProductCommand.ListInfoRequest request = ProductCommand.ListInfoRequest.of(
                     savedBrand.getId(), ProductCommand.ListInfoRequest.Sort.LATEST, 0, 5);
