@@ -22,7 +22,12 @@ public class ProductService {
     private final ProductCacheRepository productCacheRepository;
 
     public Optional<Product> getProductInfo(Long id) {
-        return productRepository.findByProductId(id);
+        Optional<Product> productInfo = productCacheRepository.findByProductInfo(id);
+        if (productInfo.isEmpty()){
+            productInfo = productRepository.findByProductId(id);
+            productCacheRepository.setProduct(id, productInfo);
+        }
+        return productInfo;
     }
 
     public List<ProductData> getProductList(Long brandUid, Pageable pageable) {

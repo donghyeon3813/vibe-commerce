@@ -1,1 +1,4 @@
+### get List
 GET {{commerce-api}}/api/v1/products?brandId=0&page=1&size=20&sort=LIKE_DESC
+### get Detail
+GET {{commerce-api}}/api/v1/products/1

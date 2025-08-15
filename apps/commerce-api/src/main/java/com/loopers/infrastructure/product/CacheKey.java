@@ -6,8 +6,8 @@ import org.springframework.stereotype.Component;
 
 @Component
 public class CacheKey {
-    public String buildCacheKey(Long brandUid, Pageable pageable) {
-        int brandId = brandUid == null ? 0 : brandUid.intValue();
+    public String buildProductListCacheKey(Long brandUid, Pageable pageable) {
+        long brandId = brandUid == null ? 0 : brandUid;
 
         Sort.Order order = pageable.getSort().stream()
                 .findFirst()
@@ -22,6 +22,13 @@ public class CacheKey {
                 pageable.getPageNumber(),
                 pageable.getPageSize(),
                 sortKey
+        );
+    }
+
+    public String buildProductCacheKey(Long productId) {
+        return String.format(
+                "search:product:%d",
+                productId
         );
     }
 }

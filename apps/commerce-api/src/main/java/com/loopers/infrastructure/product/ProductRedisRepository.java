@@ -2,6 +2,7 @@ package com.loopers.infrastructure.product;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.loopers.domain.product.Product;
 import com.loopers.domain.product.ProductData;
 import com.loopers.support.error.CoreException;
 import com.loopers.support.error.ErrorType;
@@ -12,6 +13,7 @@ import org.springframework.stereotype.Component;
 import java.time.Duration;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 
 @Component
@@ -23,7 +25,8 @@ public class ProductRedisRepository {
     private static final List<String> accessPageListKey = List.of(
             "search:product:brand:0:page:1:size:20:sort:likeCount:DESC",
             "search:product:brand:0:page:2:size:20:sort:likeCount:DESC",
-            "search:product:brand:0:page:3:size:20:sort:likeCount:DESC"
+            "search:product:brand:0:page:3:size:20:sort:likeCount:DESC",
+            "search:product:1"
     );
 
 
@@ -46,6 +49,34 @@ public class ProductRedisRepository {
         }
         try {
             String json = objectMapper.writeValueAsString(value);
+            redisTemplate.opsForValue().set(key, json, DEFAULT_TTL);
+        } catch (JsonProcessingException e) {
+            throw new CoreException(ErrorType.INTERNAL_ERROR, "Error parsing product Set data");
+        }
+    }
+
+    public Optional<Product> getProduct(String key) {
+        String value = redisTemplate.opsForValue().get(key);
+        if (value == null) {
+            return Optional.empty();
+        }
+        try {
+            Product product = objectMapper.readValue(
+                    value,
+                    objectMapper.getTypeFactory().constructType(Product.class)
+            );
+            return Optional.of(product);
+        } catch (JsonProcessingException e) {
+            throw new CoreException(ErrorType.INTERNAL_ERROR, "Error parsing product Get data");
+        }
+    }
+
+    public void setProduct(String key, Product product) {
+        if (!accessPageListKey.contains(key)) {
+            return;
+        }
+        try {
+            String json = objectMapper.writeValueAsString(product);
             redisTemplate.opsForValue().set(key, json, DEFAULT_TTL);
         } catch (JsonProcessingException e) {
             throw new CoreException(ErrorType.INTERNAL_ERROR, "Error parsing product Set data");

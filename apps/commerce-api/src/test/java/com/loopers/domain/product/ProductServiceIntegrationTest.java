@@ -1,6 +1,8 @@
 package com.loopers.domain.product;
 
 import com.loopers.infrastructure.product.ProductJpaRepository;
+import com.loopers.utils.RedisCleanUp;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -20,10 +22,16 @@ public class ProductServiceIntegrationTest {
     private ProductService productService;
     @Autowired
     private ProductJpaRepository productJpaRepository;
+    @Autowired
+    private RedisCleanUp redisCleanUp;
 
     @DisplayName("상품을 조회할 때")
     @Nested
     class Info {
+        @BeforeEach
+        void cleanCache() {
+            redisCleanUp.truncateAll();
+        }
         @DisplayName("일치하는 값이 없으면 빈항목을 반환한다.")
         @Test
         void returnsEmptyProduct_whenProductNotExist() {
@@ -38,9 +46,15 @@ public class ProductServiceIntegrationTest {
         @DisplayName("일치하는 값이 있으면 product 를 반환한다.")
         @Test
         void returnsEmptyProduct_whenProductExist() {
-            Product savedProduct = productJpaRepository.save(Product.create(1L, "과일", 1000, 5));
+
+            Product savedProduct = productJpaRepository.save(Product.create(1L, "name123", 1000, 5));
 
             Optional<Product> productInfo = productService.getProductInfo(savedProduct.getId());
+
+            System.out.println("productInfo.get().getQuantity() = " + productInfo.get().getQuantity());
+            System.out.println("productInfo.get().getQuantity() = " + productInfo.get().getName());
+            System.out.println("productInfo.get().id() = " + productInfo.get().getId());
+            System.out.println("productInfo.get().amount() = " + productInfo.get().getAmount());
 
             assertAll(
                     () -> assertThat(productInfo).isPresent(),

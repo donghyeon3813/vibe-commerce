@@ -18,4 +18,9 @@ public class ProductV1Dto {
     }
 
 
+    public record ProductDetailResponse(ProductInfo.ProductDetailInfo productInfo) {
+        public static ProductDetailResponse from(ProductInfo.ProductDetailInfo productInfo) {
+            return new ProductDetailResponse(productInfo);
+        }
+    }
 }

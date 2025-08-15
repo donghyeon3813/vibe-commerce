@@ -4,7 +4,6 @@ import com.loopers.application.product.ProductCommand;
 import com.loopers.application.product.ProductFacade;
 import com.loopers.application.product.ProductInfo;
 import com.loopers.interfaces.api.ApiResponse;
-import jakarta.validation.constraints.Pattern;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
@@ -28,4 +27,12 @@ public class ProductV1Controller implements ProductV1ApiSpec{
 
         return ApiResponse.success(ProductV1Dto.ProductListResponse.from(listInfo));
     }
+
+    @GetMapping("/{productId}")
+    @Override
+    public ApiResponse<ProductV1Dto.ProductDetailResponse> getProducts(@PathVariable("productId") Long productId) {
+        ProductInfo.ProductDetailInfo info = productFacade.getProductDetailInfo(ProductCommand.DetailInfoRequest.of(productId));
+        return ApiResponse.success(ProductV1Dto.ProductDetailResponse.from(info));
+    }
+
 }
