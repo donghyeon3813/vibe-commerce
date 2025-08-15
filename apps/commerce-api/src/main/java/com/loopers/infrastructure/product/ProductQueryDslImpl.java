@@ -59,7 +59,7 @@ public class ProductQueryDslImpl {
                     break;
             }
         }
-        if (brandFilter != null) {
+        if (brandFilter != null & (brandUid != null && brandUid > 0)) {
             query.where(brandFilter);
         }
 

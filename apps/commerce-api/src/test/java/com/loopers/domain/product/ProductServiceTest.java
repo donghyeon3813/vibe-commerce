@@ -44,11 +44,10 @@ public class ProductServiceTest {
         @DisplayName("productJpaRepository 를 호출하는지 확인한다.")
         @Test
         void testProductJpaRepositoryIsCalled(){
-            Long productId = 1L;
+            Product savedProduct = productJpaRepository.save(Product.create(1L, "과일", 1000, 5));
 
-            productService.getProductInfo(productId);
-
-            verify(productJpaRepository, times(1)).findById(productId);
+            productService.getProductInfo(savedProduct.getId());
+            verify(productJpaRepository, times(1)).findById(savedProduct.getId());
         }
     }
 }
