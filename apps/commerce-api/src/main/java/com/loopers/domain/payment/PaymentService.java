@@ -10,9 +10,12 @@ public class PaymentService {
 
     private final PaymentRepository paymentRepository;
 
+
     @Transactional
-    public void createPoint(Long orderId) {
+    public void createPayment(Long orderId) {
         Payment payment = Payment.create(orderId, PayType.POINT, null);
         paymentRepository.save(payment);
     }
+
+
 }
