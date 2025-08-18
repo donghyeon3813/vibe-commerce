@@ -6,11 +6,13 @@ import com.loopers.application.product.ProductInfo;
 import com.loopers.domain.brand.Brand;
 import com.loopers.domain.like.Like;
 import com.loopers.domain.product.Product;
+import com.loopers.domain.productlike.ProductLike;
 import com.loopers.domain.user.Gender;
 import com.loopers.domain.user.UserModel;
 import com.loopers.infrastructure.brand.BrandJpaRepository;
 import com.loopers.infrastructure.like.LikeJpaRepository;
 import com.loopers.infrastructure.product.ProductJpaRepository;
+import com.loopers.infrastructure.productlike.ProductLikeJpaRepository;
 import com.loopers.infrastructure.user.UserJpaRepository;
 import com.loopers.support.error.CoreException;
 import com.loopers.support.error.ErrorType;
@@ -52,6 +54,8 @@ public class LikeFacadeIntegrationTest {
 
     @Autowired
     private DatabaseCleanUp databaseCleanUp;
+    @Autowired
+    private ProductLikeJpaRepository productLikeJpaRepository;
 
     @AfterEach
     void tearDown() {
@@ -312,7 +316,8 @@ public class LikeFacadeIntegrationTest {
             executorService.shutdown();
             executorService.awaitTermination(10, TimeUnit.SECONDS);
 
-            int resultCount = likeJpaRepository.countByProductUid(productUid);
+            Optional<ProductLike> byId = productLikeJpaRepository.findById(productUid);
+            long resultCount = byId.get().getLikeCount();
             assertThat(resultCount).isEqualTo(4);
         }
 

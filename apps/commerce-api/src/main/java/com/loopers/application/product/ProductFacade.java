@@ -7,6 +7,8 @@ import com.loopers.domain.product.Product;
 import com.loopers.domain.product.ProductData;
 import com.loopers.domain.product.ProductDetailComposer;
 import com.loopers.domain.product.ProductService;
+import com.loopers.domain.productlike.ProductLike;
+import com.loopers.domain.productlike.ProductLikeService;
 import com.loopers.support.error.CoreException;
 import com.loopers.support.error.ErrorType;
 import lombok.RequiredArgsConstructor;
@@ -27,15 +29,15 @@ public class ProductFacade {
     private final BrandService brandService;
     private final LikeService likeService;
     private final ProductDetailComposer productDetailComposer;
+    private final ProductLikeService productLikeService;
 
 @Transactional(readOnly = true)
     public ProductInfo.ProductListInfo getProductList(ProductCommand.ListInfoRequest productCommand) {
+
         Sort sort = Sort.by(productCommand.sort.getDirection(), productCommand.sort.getField());
 
         Pageable pageable = PageRequest.of(productCommand.getPage(), productCommand.getSize(), sort);
-
         List<ProductData> productList = productService.getProductList(productCommand.brandId, pageable);
-
 
         return ProductInfo.ProductListInfo.from(productList);
     }
@@ -54,8 +56,11 @@ public class ProductFacade {
             throw new CoreException(ErrorType.NOT_FOUND, "Brand 정보가 존재하지 않습니다.");
         }
         Brand brand = Brand.get();
-        int count = likeService.getCountByProductUid(product.getId());
-
+        Optional<ProductLike> productLike = productLikeService.getProductLike(product.getId());
+        int count = 0;
+        if (productLike.isPresent()) {
+            count = (int) productLike.get().getLikeCount();
+        }
         return ProductInfo.ProductDetailInfo.from(productDetailComposer.compose(product, brand, count));
     }
 }

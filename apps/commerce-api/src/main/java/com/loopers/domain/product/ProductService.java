@@ -5,6 +5,7 @@ import com.loopers.support.error.CoreException;
 import com.loopers.support.error.ErrorType;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -18,13 +19,24 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class ProductService {
     private final ProductRepository productRepository;
+    private final ProductCacheRepository productCacheRepository;
 
     public Optional<Product> getProductInfo(Long id) {
-        return productRepository.findByProductId(id);
+        Optional<Product> productInfo = productCacheRepository.findByProductInfo(id);
+        if (productInfo.isEmpty()){
+            productInfo = productRepository.findByProductId(id);
+            productCacheRepository.setProduct(id, productInfo);
+        }
+        return productInfo;
     }
 
     public List<ProductData> getProductList(Long brandUid, Pageable pageable) {
-        return productRepository.findByPageable(brandUid, pageable);
+        List<ProductData> productData = productCacheRepository.findByPageable(brandUid, pageable);
+        if (productData == null || productData.isEmpty()) {
+            productData = productRepository.findByPageable(brandUid, pageable);
+            productCacheRepository.setPageable(brandUid, pageable, productData);
+        }
+        return productData;
     }
 
 
