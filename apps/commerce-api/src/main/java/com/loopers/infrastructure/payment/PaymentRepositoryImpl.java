@@ -11,7 +11,7 @@ public class PaymentRepositoryImpl implements PaymentRepository {
     private final PaymentJpaRepository paymentRepository;
 
     @Override
-    public void save(Payment payment) {
-        paymentRepository.save(payment);
+    public Payment save(Payment payment) {
+        return paymentRepository.save(payment);
     }
 }

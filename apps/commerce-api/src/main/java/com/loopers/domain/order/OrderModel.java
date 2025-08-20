@@ -67,4 +67,7 @@ public class OrderModel extends BaseEntity {
         }
         this.orderStatus = OrderStatus.PAID;
     }
+    public void changeStatusTCanceled() {
+        this.orderStatus = OrderStatus.CANCELLED;
+    }
 }

@@ -32,10 +32,10 @@ public class OrderFacade {
     private final ProductService productService;
 
     private final OrderService orderService;
-    private final PaymentService paymentService;
     private final CouponIssueService couponIssueService;
     private final CouponService couponService;
-    private final PaymentProcessor paymentProcessor;
+
+    private final PaymentProcessorFactory paymentProcessorFactory;
 
     @Transactional
     public OrderInfo.OrderResponse order(OrderCommand.Order order) {
@@ -73,10 +73,7 @@ public class OrderFacade {
         productService.deductQuantity(items, productList);
 
         // 결제 진행
-        paymentProcessor.process(orderModel, order, user);
-
-        //order 상태 변경
-        orderModel.changeStatusToPaid();
+        paymentProcessorFactory.getPaymentProcessor(order).process(orderModel, order, user);
 
         return OrderInfo.OrderResponse.of(orderModel.getId());
 

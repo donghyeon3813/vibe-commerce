@@ -43,7 +43,7 @@ public class OrderCommand {
         }
 
         public static Order of(List<OrderItem> items, String userId, String address, String phone, String receiverName, Long couponId) {
-            return new Order(items, userId, address, phone, receiverName, couponId);
+            return new Order(items, userId, address, phone, receiverName, couponId, null, null, Payment.POINT);
         }
 
         public static Order ofCard(List<OrderItem> items, String userId, String address, String phone, String receiverName,
