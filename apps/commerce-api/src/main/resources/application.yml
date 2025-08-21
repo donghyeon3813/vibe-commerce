@@ -37,6 +37,7 @@ resilience4j:
         retry-exceptions:
           - feign.RetryableException
           - feign.FeignException.InternalServerError
+          - java.net.SocketTimeoutException
         fail-after-max-attempts: true
   circuitbreaker:
     instances:
