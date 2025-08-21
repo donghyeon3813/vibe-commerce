@@ -34,7 +34,7 @@ public class PgSimulator implements PaymentGateway {
             PaymentResponse response = pgClient.pay("133515", paymentRequest);
             return response.getData().getTransactionKey();
         } catch (FeignException.BadRequest e) {
-            throw new CoreException(ErrorType.BAD_REQUEST, e.getMessage());
+            throw new CoreException(ErrorType.BAD_REQUEST, "pg 오류가 발생했습니다.");
         }
     }
 
@@ -52,6 +52,6 @@ public class PgSimulator implements PaymentGateway {
     public String payFallback(OrderModel orderModel, OrderCommand.Order order, Throwable t) {
         log.error("결제 재시도 실패: {}", t.getMessage(), t);
 
-        throw new CoreException(ErrorType.INTERNAL_ERROR, t.getMessage());
+        throw new CoreException(ErrorType.INTERNAL_ERROR, "pg 오류가 발생했습니다.");
     }
 }
