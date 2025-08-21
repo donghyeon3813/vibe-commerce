@@ -34,7 +34,7 @@ public class PaymentService {
         return paymentRepository.findByTransactionKey(transactionKey);
     }
 
-    public PaymentResponse getPgPayment(String transactionKey) {
+    public PaymentResponse getPgPaymentByTransaction(String transactionKey) {
         return paymentGateway.get(transactionKey);
     }
 
@@ -44,5 +44,9 @@ public class PaymentService {
 
     public List<Payment> findByPaymentStatusAndCreatedAtBefore(PaymentStatus paymentStatus, ZonedDateTime thirtyMinutesAgo) {
         return paymentRepository.findByPaymentStatusAndCreatedAtBefore(paymentStatus, thirtyMinutesAgo);
+    }
+
+    public PaymentResponse getPgPaymentByOrderId(Long orderUid) {
+        return paymentGateway.getByOrderUid(orderUid);
     }
 }

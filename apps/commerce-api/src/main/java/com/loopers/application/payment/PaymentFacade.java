@@ -23,7 +23,7 @@ public class PaymentFacade {
                 .orElseThrow(() -> new CoreException(ErrorType.NOT_FOUND, "해당 하는 주문 정보가 없습니다."));
 
         Payment payment = paymentService.getPayment(command.getTransactionKey())
-                .orElseThrow(() -> new CoreException(ErrorType.NOT_FOUND, "해당 하는 주문 정보가 없습니다."));;
+                .orElseThrow(() -> new CoreException(ErrorType.NOT_FOUND, "해당 하는 결제 정보가 없습니다."));;
 
         paymentStrategyFactory.getUpdateProcessor(command.getStatus()).process(orderModel, payment);
 

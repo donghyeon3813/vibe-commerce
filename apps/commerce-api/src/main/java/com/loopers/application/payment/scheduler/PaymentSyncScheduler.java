@@ -38,10 +38,18 @@ public class PaymentSyncScheduler {
         for (Payment payment : pendingList) {
             PaymentResponse pgPayment;
             try {
-                pgPayment = paymentService.getPgPayment(payment.getTransactionKey());
-                if (pgPayment == null) {
-                    continue;
+                if(payment.getTransactionKey()!=null) {
+                    pgPayment = paymentService.getPgPaymentByTransaction(payment.getTransactionKey());
+                    if (pgPayment == null) {
+                        continue;
+                    }
+                }else {//transaction key가 없으면 orderID로 조회
+                    pgPayment = paymentService.getPgPaymentByOrderId(payment.getOrderUid());
+                    if (pgPayment == null) {
+                        continue;
+                    }
                 }
+
                 Optional<OrderModel> orderModel = orderService.getOrder(payment.getOrderUid());
                 if (orderModel.isEmpty()) {
                     continue;
@@ -75,5 +83,4 @@ public class PaymentSyncScheduler {
             paymentStrategyFactory.getUpdateProcessor("FAILED").process(orderModel.get(), payment);
         }
     }
-
 }

@@ -43,6 +43,12 @@ public class PgSimulator implements PaymentGateway {
         PaymentResponse response = pgClient.get(transactionKey, "133515");
         return response;
     }
+
+    @Override
+    public PaymentResponse getByOrderUid(Long orderUid) {
+        return pgClient.getPayments("133515", String.format("%06d", orderUid));
+    }
+
     public String payFallback(OrderModel orderModel, OrderCommand.Order order, Throwable t) {
         log.error("결제 재시도 실패: {}", t.getMessage(), t);
 

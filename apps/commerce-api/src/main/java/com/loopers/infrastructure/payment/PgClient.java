@@ -17,5 +17,10 @@ public interface PgClient {
             @PathVariable("transactionKey") String transactionKey,
             @RequestHeader("X-USER-ID") String userId
     );
+    @GetMapping
+    PaymentResponse getPayments(
+            @RequestHeader("X-USER-ID") String userId,
+            @RequestParam("orderId") String orderId
+    );
 
 }

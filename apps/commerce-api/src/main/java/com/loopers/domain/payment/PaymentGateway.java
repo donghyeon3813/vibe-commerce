@@ -8,4 +8,6 @@ public interface PaymentGateway {
     String pay(OrderModel orderModel, OrderCommand.Order order);
 
     PaymentResponse get(String transactionKey);
+
+    PaymentResponse getByOrderUid(Long orderUid);
 }
