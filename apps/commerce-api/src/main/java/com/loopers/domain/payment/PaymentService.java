@@ -2,9 +2,12 @@ package com.loopers.domain.payment;
 
 import com.loopers.application.order.OrderCommand;
 import com.loopers.domain.order.OrderModel;
+import com.loopers.infrastructure.payment.PaymentResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
+import java.time.ZonedDateTime;
+import java.util.List;
 import java.util.Optional;
 
 @Component
@@ -28,7 +31,18 @@ public class PaymentService {
     }
 
     public Optional<Payment> getPayment(String transactionKey) {
-        return paymentRepository.findByTransactionKey(transactionKey)
-                ;
+        return paymentRepository.findByTransactionKey(transactionKey);
+    }
+
+    public PaymentResponse getPgPayment(String transactionKey) {
+        return paymentGateway.get(transactionKey);
+    }
+
+    public List<Payment> getPendingList() {
+        return paymentRepository.findAllByPaymentStatus(PaymentStatus.PENDING);
+    }
+
+    public List<Payment> findByPaymentStatusAndCreatedAtBefore(PaymentStatus paymentStatus, ZonedDateTime thirtyMinutesAgo) {
+        return paymentRepository.findByPaymentStatusAndCreatedAtBefore(paymentStatus, thirtyMinutesAgo);
     }
 }

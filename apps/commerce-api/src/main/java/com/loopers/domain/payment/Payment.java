@@ -4,11 +4,13 @@ import com.loopers.domain.BaseEntity;
 import com.loopers.support.error.CoreException;
 import com.loopers.support.error.ErrorType;
 import jakarta.persistence.*;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 @Entity
 @Table(name = "payment")
 @NoArgsConstructor
+@Getter
 public class Payment extends BaseEntity {
     private Long orderUid;
 

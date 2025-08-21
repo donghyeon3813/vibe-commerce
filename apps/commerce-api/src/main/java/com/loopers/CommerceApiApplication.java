@@ -6,6 +6,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.properties.ConfigurationPropertiesScan;
 import org.springframework.cloud.openfeign.EnableFeignClients;
 import org.springframework.retry.annotation.EnableRetry;
+import org.springframework.scheduling.annotation.EnableScheduling;
 
 
 import java.util.TimeZone;
@@ -14,6 +15,7 @@ import java.util.TimeZone;
 @SpringBootApplication
 @EnableRetry
 @EnableFeignClients
+@EnableScheduling
 public class CommerceApiApplication {
 
     @PostConstruct

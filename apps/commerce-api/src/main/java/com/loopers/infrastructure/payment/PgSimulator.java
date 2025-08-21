@@ -31,4 +31,10 @@ public class PgSimulator implements PaymentGateway {
         }
 
     }
+
+    @Override
+    public PaymentResponse get(String transactionKey) {
+        PaymentResponse response = pgClient.get(transactionKey, "133515");
+        return response;
+    }
 }
