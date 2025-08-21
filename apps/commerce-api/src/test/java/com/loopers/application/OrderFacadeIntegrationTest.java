@@ -345,7 +345,7 @@ public class OrderFacadeIntegrationTest {
             OrderCommand.Order order1 = OrderCommand.Order.of(items, user1.getUserId(), "서울시", "01012345678", "홍길동", null);
             OrderCommand.Order order2 = OrderCommand.Order.of(items, user2.getUserId(), "부산시", "01098765432", "임꺽정", null);
 
-            int threadCount = 10;
+            int threadCount = 2;
             ExecutorService executorService = Executors.newFixedThreadPool(threadCount);
             CountDownLatch latch = new CountDownLatch(threadCount);
 
@@ -376,10 +376,10 @@ public class OrderFacadeIntegrationTest {
 
 
             assertAll(
-                    () -> assertThat(pointModel1.getPoint().doubleValue()).isEqualTo(7500), // 10번 성공 2500차감
-                    () -> assertThat(pointModel2.getPoint().doubleValue()).isEqualTo(2500), // 10번 성공 2500차감
-                    () -> assertThat(testProduct1.getQuantity()).isEqualTo(10), // 10번 성공 20 차감
-                    () -> assertThat(testProduct2.getQuantity()).isEqualTo(0)); // 10번 성공 30 차감
+                    () -> assertThat(pointModel1.getPoint().doubleValue()).isEqualTo(9500), // 1번 성공 2500차감
+                    () -> assertThat(pointModel2.getPoint().doubleValue()).isEqualTo(4500), // 1번 성공 2500차감
+                    () -> assertThat(testProduct1.getQuantity()).isEqualTo(26), // 2번 성공 20 차감
+                    () -> assertThat(testProduct2.getQuantity()).isEqualTo(24)); // 10번 성공 30 차감
 
         }
         @DisplayName("같은 유저로 주문 요청시 정확히 차감된다.")

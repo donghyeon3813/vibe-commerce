@@ -61,4 +61,7 @@ public class OrderService {
     public Optional<OrderModel> getOrder(Long orderId, Long userId) {
         return orderRepository.findByIdAndUserUid(userId, orderId);
     }
+    public Optional<OrderModel> getOrder(Long orderId) {
+        return orderRepository.findById(orderId);
+    }
 }

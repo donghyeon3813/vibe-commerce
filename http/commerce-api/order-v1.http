@@ -1,0 +1,24 @@
+### Create Card Order
+POST {{commerce-api}}/api/v1/orders
+Content-Type: application/json
+X-USER-ID: user001
+
+{
+  "items": [
+    {
+      "productId": 1001,
+      "quantity": 2
+    },
+    {
+      "productId": 1002,
+      "quantity": 1
+    }
+  ],
+  "address": "서울시 강남구 테헤란로 123",
+  "phone": "010-1234-5678",
+  "couponId": null,
+  "receiverName": "홍길동",
+  "cardType": "SAMSUNG",
+  "cardNo": "1234-5678-9012-3456"
+}
+
