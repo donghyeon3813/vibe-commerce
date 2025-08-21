@@ -25,7 +25,7 @@ public class CardProcessor implements PaymentProcessor {
             payment.requestSuccess(transactionKey);
         } catch (CoreException e){
             payment.fail();
-            orderModel.changeStatusTCanceled();
+            orderModel.changeStatusToCanceled();
             throw e;
         }
     }

@@ -34,7 +34,7 @@ public class PointProcessor implements PaymentProcessor {
             pointModel.deduct(orderModel.getAmount());
         }catch (CoreException e) {
                 payment.fail();
-                orderModel.changeStatusTCanceled();
+                orderModel.changeStatusToCanceled();
                 throw e;
         }
 

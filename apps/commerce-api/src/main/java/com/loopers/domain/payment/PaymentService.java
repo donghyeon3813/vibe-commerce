@@ -5,6 +5,8 @@ import com.loopers.domain.order.OrderModel;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
+import java.util.Optional;
+
 @Component
 @RequiredArgsConstructor
 public class PaymentService {
@@ -23,5 +25,10 @@ public class PaymentService {
     public String cardPay(OrderModel orderModel, OrderCommand.Order order) {
         return paymentGateway.pay(orderModel, order);
 
+    }
+
+    public Optional<Payment> getPayment(String transactionKey) {
+        return paymentRepository.findByTransactionKey(transactionKey)
+                ;
     }
 }

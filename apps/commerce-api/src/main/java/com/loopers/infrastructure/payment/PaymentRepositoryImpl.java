@@ -5,6 +5,8 @@ import com.loopers.domain.payment.PaymentRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
+import java.util.Optional;
+
 @Component
 @RequiredArgsConstructor
 public class PaymentRepositoryImpl implements PaymentRepository {
@@ -14,4 +16,11 @@ public class PaymentRepositoryImpl implements PaymentRepository {
     public Payment save(Payment payment) {
         return paymentRepository.save(payment);
     }
+
+    @Override
+    public Optional<Payment> findByTransactionKey(String transactionKey) {
+        return paymentRepository.findByTransactionKey(transactionKey);
+    }
+
+
 }

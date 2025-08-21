@@ -24,6 +24,7 @@ public class OrderModel extends BaseEntity {
     private Address address;
 
     @Enumerated(EnumType.STRING)
+    @Column(name = "order_status", length = 30, nullable = false)
     private OrderStatus orderStatus;
 
     private BigDecimal amount;
@@ -38,6 +39,7 @@ public class OrderModel extends BaseEntity {
         this.orderStatus = orderStatus;
         this.amount = amount;
         this.address = address;
+        this.couponUid = couponId;
     }
 
     public static OrderModel create(Long userUid, BigDecimal amount, Address address, Long couponId) {
@@ -67,7 +69,11 @@ public class OrderModel extends BaseEntity {
         }
         this.orderStatus = OrderStatus.PAID;
     }
-    public void changeStatusTCanceled() {
+    public void changeStatusToCanceled() {
         this.orderStatus = OrderStatus.CANCELLED;
+    }
+
+    public void changeStatusToFailed() {
+        this.orderStatus = OrderStatus.FAILED;
     }
 }
