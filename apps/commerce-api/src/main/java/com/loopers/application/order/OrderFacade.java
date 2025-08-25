@@ -5,11 +5,8 @@ import com.loopers.domain.coupon.CouponService;
 import com.loopers.domain.issue.CouponIssue;
 import com.loopers.domain.issue.CouponIssueService;
 import com.loopers.domain.order.OrderModel;
-import com.loopers.domain.order.OrderRepository;
 import com.loopers.domain.order.OrderService;
 import com.loopers.domain.payment.PaymentService;
-import com.loopers.domain.point.PointModel;
-import com.loopers.domain.point.PointService;
 import com.loopers.domain.product.Product;
 import com.loopers.domain.product.ProductService;
 import com.loopers.domain.user.UserModel;
@@ -33,11 +30,12 @@ public class OrderFacade {
 
     private final UserService userService;
     private final ProductService productService;
-    private final PointService pointService;
+
     private final OrderService orderService;
-    private final PaymentService paymentService;
     private final CouponIssueService couponIssueService;
     private final CouponService couponService;
+
+    private final PaymentProcessorFactory paymentProcessorFactory;
 
     @Transactional
     public OrderInfo.OrderResponse order(OrderCommand.Order order) {
@@ -46,13 +44,10 @@ public class OrderFacade {
         if (user == null) {
             throw new CoreException(ErrorType.NOT_FOUND, "회원을 찾을 수 없습니다.");
         }
-
         // product uid 추출
         List<OrderCommand.Order.OrderItem> items = order.getItems();
         Set<Long> productUidList = items.stream().map(OrderCommand.Order.OrderItem::getProductId).collect(Collectors.toSet());
-        //point 조회
-        PointModel pointModel = pointService.getPointInfoForUpdate(user.getId())
-                .orElseThrow(() -> new CoreException(ErrorType.BAD_REQUEST, "포인트 정보가 잘못되었습니다."));
+
         //product 조회
         List<Product> productList = productService.getProductsByProductUidsForUpdate(productUidList);
         productService.checkProductConsistency(productUidList.size(), productList.size());
@@ -73,16 +68,12 @@ public class OrderFacade {
         //order 생성
         OrderModel orderModel = orderService
                 .create(user.getId(), order.getItems(), totalAmount, order.getPhone(), order.getReceiverName(), order.getAddress(), couponId);
-        // point 차감
-        pointModel.deduct(totalAmount);
+
         // 재고 차감
         productService.deductQuantity(items, productList);
 
-        //결재 정보 생성
-        paymentService.createPoint(orderModel.getId());
-
-        //order 상태 변경
-        orderModel.changeStatusToPaid();
+        // 결제 진행
+        paymentProcessorFactory.getPaymentProcessor(order).process(orderModel, order, user);
 
         return OrderInfo.OrderResponse.of(orderModel.getId());
 

@@ -5,6 +5,13 @@ dependencies {
     implementation(project(":supports:jackson"))
     implementation(project(":supports:logging"))
     implementation(project(":supports:monitoring"))
+    // feignClient
+    implementation("org.springframework.cloud:spring-cloud-starter-openfeign")
+
+    //resilience4j:
+    implementation("io.github.resilience4j:resilience4j-spring-boot3")
+    implementation("org.springframework.boot:spring-boot-starter-aop")
+
     //querydsl
     annotationProcessor("com.querydsl:querydsl-apt::jakarta")
     annotationProcessor("jakarta.persistence:jakarta.persistence-api")

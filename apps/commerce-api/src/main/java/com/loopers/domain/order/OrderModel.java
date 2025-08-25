@@ -24,6 +24,7 @@ public class OrderModel extends BaseEntity {
     private Address address;
 
     @Enumerated(EnumType.STRING)
+    @Column(name = "order_status", length = 30, nullable = false)
     private OrderStatus orderStatus;
 
     private BigDecimal amount;
@@ -38,6 +39,7 @@ public class OrderModel extends BaseEntity {
         this.orderStatus = orderStatus;
         this.amount = amount;
         this.address = address;
+        this.couponUid = couponId;
     }
 
     public static OrderModel create(Long userUid, BigDecimal amount, Address address, Long couponId) {
@@ -66,5 +68,12 @@ public class OrderModel extends BaseEntity {
             throw new CoreException(ErrorType.BAD_REQUEST, "이미 결제된 상태는 변경할 수 없습니다.");
         }
         this.orderStatus = OrderStatus.PAID;
+    }
+    public void changeStatusToCanceled() {
+        this.orderStatus = OrderStatus.CANCELLED;
+    }
+
+    public void changeStatusToFailed() {
+        this.orderStatus = OrderStatus.FAILED;
     }
 }
