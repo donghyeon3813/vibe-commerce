@@ -1,5 +1,6 @@
 package com.loopers.application.order;
 
+import com.loopers.application.issue.listener.CouponIssueEvent;
 import com.loopers.domain.coupon.Coupon;
 import com.loopers.domain.coupon.CouponService;
 import com.loopers.domain.issue.CouponIssue;
@@ -14,6 +15,7 @@ import com.loopers.domain.user.UserService;
 import com.loopers.support.error.CoreException;
 import com.loopers.support.error.ErrorType;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -36,6 +38,7 @@ public class OrderFacade {
     private final CouponService couponService;
 
     private final PaymentProcessorFactory paymentProcessorFactory;
+    private final ApplicationEventPublisher applicationEventPublisher;
 
     @Transactional
     public OrderInfo.OrderResponse order(OrderCommand.Order order) {
@@ -60,7 +63,7 @@ public class OrderFacade {
                     .orElseThrow(() -> new CoreException(ErrorType.BAD_REQUEST, "사용할 수 없는 쿠폰입니다.")));
             coupon = couponService.getCoupon(couponIssue.get().getCouponUid());
             couponId = couponIssue.get().getId();
-            couponIssue.ifPresent(CouponIssue::use);
+            applicationEventPublisher.publishEvent(CouponIssueEvent.UseCouponIssueEvent.of(couponId));
         }
         //totalAmount 계산
         BigDecimal totalAmount = orderService.calulateTotalAmount(items, productList, coupon);

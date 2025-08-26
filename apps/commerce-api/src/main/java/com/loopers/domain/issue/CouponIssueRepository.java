@@ -8,4 +8,6 @@ public interface CouponIssueRepository {
     List<CouponIssue> findByUserUidAndUseFlag(int UserFlag, Long userUid);
 
     Optional<CouponIssue> findByIdAndUseFlagForUpdate(Long couponId, int useFlag);
+
+    Optional<CouponIssue> findByIdAndUseFlag(Long couponId, int i);
 }
