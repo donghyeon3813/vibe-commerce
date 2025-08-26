@@ -1,5 +1,7 @@
 package com.loopers.application;
 
+import com.loopers.application.issue.listener.CouponIssueEvent;
+import com.loopers.application.issue.listener.CouponIssueListener;
 import com.loopers.application.order.OrderCommand;
 import com.loopers.application.order.OrderFacade;
 import com.loopers.application.order.OrderInfo;
@@ -23,10 +25,16 @@ import com.loopers.utils.DatabaseCleanUp;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
+import org.springframework.test.context.event.RecordApplicationEvents;
+
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -38,7 +46,11 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
 @SpringBootTest
+@RecordApplicationEvents
 public class OrderFacadeIntegrationTest {
+
+    @MockitoSpyBean
+    private CouponIssueListener couponIssueListener;
 
     @Autowired
     private OrderFacade orderFacade;
@@ -69,6 +81,35 @@ public class OrderFacadeIntegrationTest {
     @DisplayName("주문 요청을 할 때")
     @Nested
     class Order {
+        @DisplayName("쿠폰이 이벤트가 제대로 실행되었는지 확인한다.")
+        @Test
+        void couponUseEvent_shouldBeHandledSuccessfully(){
+
+                UserModel saveUser = userJpaRepository.save(UserModel.CreateUser("testId314", "test@test.com", Gender.MALE.name(), "2025-07-13"));
+                PointModel pointModel = PointModel.create(saveUser.getId(), BigDecimal.valueOf(10000));
+                pointJpaRepository.save(pointModel);
+                Coupon savedCoupon = couponJpaRepository.save(Coupon.create(CouponType.FIXED, BigDecimal.valueOf(1000)));
+
+                CouponIssue couponIssue = customerCouponIssueJpaRepository.save(CouponIssue.of(saveUser.getId(), savedCoupon.getId()));
+                customerCouponIssueJpaRepository.saveAndFlush(couponIssue);
+                Product product1 = productJpaRepository.save(Product.create(9999L, "상의", 1000, 5));  // name: 상의
+                Product product2 = productJpaRepository.save(Product.create(9999L, "하의", 500, 5));  // name: 하의
+                Product product3 = productJpaRepository.save(Product.create(9999L, "신발", 100, 5));   // name: 신발
+
+                List<OrderCommand.Order.OrderItem> orderItemList = new ArrayList<>();
+                orderItemList.add(OrderCommand.Order.OrderItem.of(product1.getId(), 2));
+                orderItemList.add(OrderCommand.Order.OrderItem.of(product2.getId(), 2));
+                orderItemList.add(OrderCommand.Order.OrderItem.of(product3.getId(), 2));
+                OrderCommand.Order order = OrderCommand.Order.of(orderItemList, saveUser.getUserId(), "주소", "01000000000", "홍길동", savedCoupon.getId());
+
+                orderFacade.order(order);
+            // then
+            verify(couponIssueListener, times(1))
+                    .handleUseCouponIssue(any(CouponIssueEvent.UseCouponIssueEvent.class));
+
+        }
+
+
         @DisplayName("등록되지 않은 유저면 NotFound를 반환한다.")
         @Test
         void throwsNotFound_whenUserNotFound() {
