@@ -54,7 +54,7 @@ public class PaymentSyncScheduler {
                 if (orderModel.isEmpty()) {
                     continue;
                 }
-                paymentStrategyFactory.getUpdateProcessor(pgPayment.getData().getStatus()).process(orderModel.get(), payment);
+                paymentStrategyFactory.getUpdateProcessor(pgPayment.getData().getStatus()).process(payment);
             } catch (Exception e) {
                 log.error(e.getMessage(), e);
             }
@@ -80,7 +80,7 @@ public class PaymentSyncScheduler {
             if (orderModel.isEmpty()) {
                 continue;
             }
-            paymentStrategyFactory.getUpdateProcessor("FAILED").process(orderModel.get(), payment);
+            paymentStrategyFactory.getUpdateProcessor("FAILED").process(payment);
         }
     }
 }

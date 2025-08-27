@@ -26,7 +26,6 @@ public class CouponIssueListener {
         CouponIssue couponIssue = couponIssueService
                 .findById(event.couponIssueId)
                 .orElseThrow(() -> new CoreException(ErrorType.BAD_REQUEST, "사용할 수 없는 쿠폰입니다."));
-        log.info("couponIssue useFlag {}", couponIssue.getUseFlag());
         couponIssue.use();
     }
 }

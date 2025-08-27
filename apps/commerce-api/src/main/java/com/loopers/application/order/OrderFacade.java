@@ -40,7 +40,7 @@ public class OrderFacade {
     private final PaymentProcessorFactory paymentProcessorFactory;
     private final ApplicationEventPublisher applicationEventPublisher;
 
-    @Transactional
+    @Transactional(noRollbackFor = CoreException.class)
     public OrderInfo.OrderResponse order(OrderCommand.Order order) {
         // 유저 확인
         UserModel user = userService.getUser(order.getUserId());

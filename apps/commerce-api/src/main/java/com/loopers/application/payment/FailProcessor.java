@@ -1,6 +1,5 @@
 package com.loopers.application.payment;
 
-import com.loopers.domain.order.OrderModel;
 import com.loopers.domain.payment.Payment;
 import com.loopers.domain.product.ProductService;
 import lombok.RequiredArgsConstructor;
@@ -16,11 +15,9 @@ public class FailProcessor implements PaymentUpdateProcessor{
 
     @Transactional
     @Override
-    public void process(OrderModel order, Payment payment) {
+    public void process(Payment payment) {
         log.info("Processing fail payment {}", payment);
-        order.getItems().forEach(item -> productService.getProductInfo(item.getProductUid())
-                .ifPresent(product -> product.restoreStock(item.getQuantity())));
-        order.changeStatusToFailed();
+
         payment.fail();
     }
 

@@ -217,7 +217,7 @@ public class OrderFacadeIntegrationTest {
 
             assertThat(orderModel).isPresent();
             assertThat(orderModel.get().getAmount().doubleValue()).isEqualTo(3200);
-            assertThat(orderModel.get().getOrderStatus()).isEqualTo(OrderStatus.PAID);
+            assertThat(orderModel.get().getOrderStatus()).isEqualTo(OrderStatus.CREATED);
 
         }
         @DisplayName("쿠폰이 없는 쿠폰이면 주문 요청에 실패한다.")
