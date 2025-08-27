@@ -1,5 +1,6 @@
 package com.loopers.application.order.listener;
 
+import com.loopers.application.delivery.listener.DeliveryEvent;
 import com.loopers.domain.issue.CouponIssue;
 import com.loopers.domain.issue.CouponIssueService;
 import com.loopers.domain.order.OrderModel;
@@ -9,6 +10,7 @@ import com.loopers.support.error.CoreException;
 import com.loopers.support.error.ErrorType;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.event.TransactionPhase;
 import org.springframework.transaction.event.TransactionalEventListener;
@@ -22,9 +24,10 @@ public class OrderListener {
     private final OrderService orderService;
     private final ProductService productService;
     private final CouponIssueService couponIssueService;
+    private final ApplicationEventPublisher eventPublisher;
 
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
-    private void orderUpdate(OrderEvent.StatusUpdateEvent event) {
+    public void orderUpdate(OrderEvent.StatusUpdateEvent event) {
         log.info("Order update event: {}", event);
         OrderModel order = orderService.getOrder(event.getId())
                 .orElseThrow(() -> new CoreException(ErrorType.NOT_FOUND, "해당 하는 주문 정보가 없습니다."));
@@ -48,5 +51,8 @@ public class OrderListener {
     private void success(OrderModel order) {
         log.info("Order success event: {}", order);
         order.changeStatusToPaid();
+        eventPublisher.publishEvent(DeliveryEvent.OrderSuccessEvent
+                .of(order.getUserUid(), order.getAddress(), order.getOrderStatus(),
+                        order.getAmount(), order.getCouponUid(), order.getItems()));
     }
 }

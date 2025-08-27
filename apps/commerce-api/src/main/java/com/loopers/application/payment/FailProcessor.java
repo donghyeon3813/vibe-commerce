@@ -1,9 +1,11 @@
 package com.loopers.application.payment;
 
+import com.loopers.application.order.listener.OrderEvent;
 import com.loopers.domain.payment.Payment;
 import com.loopers.domain.product.ProductService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
