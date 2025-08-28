@@ -47,11 +47,14 @@ public class OrderListener {
             Optional<CouponIssue> couponIssue = couponIssueService.findById(order.getCouponUid());
             couponIssue.ifPresent(CouponIssue::revoke);
         }
+        eventPublisher.publishEvent(DeliveryEvent.OrderResultEvent
+                .of(order.getUserUid(), order.getAddress(), order.getOrderStatus(),
+                        order.getAmount(), order.getCouponUid(), order.getItems()));
     }
     private void success(OrderModel order) {
         log.info("Order success event: {}", order);
         order.changeStatusToPaid();
-        eventPublisher.publishEvent(DeliveryEvent.OrderSuccessEvent
+        eventPublisher.publishEvent(DeliveryEvent.OrderResultEvent
                 .of(order.getUserUid(), order.getAddress(), order.getOrderStatus(),
                         order.getAmount(), order.getCouponUid(), order.getItems()));
     }
