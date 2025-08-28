@@ -20,4 +20,7 @@ public class CouponIssueService {
     public Optional<CouponIssue> findByIdAndUseFlagForUpdate(Long couponId) {
         return couponIssueRepository.findByIdAndUseFlagForUpdate(couponId, 0);
     }
+    public Optional<CouponIssue> findById(Long couponId) {
+        return couponIssueRepository.findByIdAndUseFlag(couponId, 0);
+    }
 }

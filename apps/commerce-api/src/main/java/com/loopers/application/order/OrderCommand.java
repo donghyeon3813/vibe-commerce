@@ -66,7 +66,7 @@ public class OrderCommand {
             }
 
         }
-        enum Payment{
+        public enum Payment{
             POINT,CARD
         }
 
