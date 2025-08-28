@@ -1,5 +1,6 @@
-package com.loopers.application.order;
+package com.loopers.application.payment;
 
+import com.loopers.application.order.OrderCommand;
 import com.loopers.domain.order.OrderModel;
 import com.loopers.domain.user.UserModel;
 

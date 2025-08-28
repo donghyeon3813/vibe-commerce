@@ -42,4 +42,7 @@ public class CouponIssue extends BaseEntity {
         }
         useFlag = 1;
     }
+    public void revoke(){
+        useFlag = 0;
+    }
 }

@@ -18,4 +18,6 @@ public interface CouponIssueJpaRepository extends JpaRepository<CouponIssue, Lon
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("SELECT c FROM CouponIssue c WHERE c.id = :id AND c.useFlag = :useFlag")
     Optional<CouponIssue> findByIdAndUseFlagForUpdate(@Param("id") Long id, @Param("useFlag") int useFlag);
+
+    Optional<CouponIssue> findByIdAndUseFlag(Long couponId, int i);
 }

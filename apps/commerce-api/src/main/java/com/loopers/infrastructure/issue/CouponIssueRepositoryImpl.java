@@ -23,4 +23,9 @@ public class CouponIssueRepositoryImpl implements CouponIssueRepository {
     public Optional<CouponIssue> findByIdAndUseFlagForUpdate(Long couponId, int useFlag) {
         return couponIssueJpaRepository.findByIdAndUseFlagForUpdate(couponId, useFlag);
     }
+
+    @Override
+    public Optional<CouponIssue> findByIdAndUseFlag(Long couponId, int i) {
+        return couponIssueJpaRepository.findByIdAndUseFlag(couponId, i);
+    }
 }

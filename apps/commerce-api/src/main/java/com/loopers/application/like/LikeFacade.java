@@ -1,6 +1,7 @@
 package com.loopers.application.like;
 
 import com.loopers.application.product.ProductInfo;
+import com.loopers.application.productLike.listener.ProductLikeEvent;
 import com.loopers.domain.brand.Brand;
 import com.loopers.domain.brand.BrandService;
 import com.loopers.domain.like.Like;
@@ -16,6 +17,7 @@ import com.loopers.domain.user.UserService;
 import com.loopers.support.error.CoreException;
 import com.loopers.support.error.ErrorType;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -35,11 +37,11 @@ public class LikeFacade {
     private final ProductService productService;
     private final BrandService brandService;
     private final ProductDetailComposer productDetailComposer;
+    private final ApplicationEventPublisher eventPublisher;
     private final ProductLikeService productLikeService;
 
 
     @Transactional
-    @Retryable
     public void register(LikeCommand.RegisterDto registerDto) {
 
         UserModel user = userService.getUser(registerDto.userId());
@@ -50,12 +52,7 @@ public class LikeFacade {
                 .orElseThrow(() -> new CoreException(ErrorType.NOT_FOUND, "상품을 찾을 수 없습니다."));
 
         likeService.resist(user.getId(), registerDto.productId());
-        Optional<ProductLike> productLikeForUpdate = productLikeService.getProductLike(registerDto.productId());
-        if (productLikeForUpdate.isPresent()) {
-            productLikeForUpdate.get().increment();
-        }else {
-            productLikeService.saveProductLike(registerDto.productId(), 1, product.getBrandUid()).increment();
-        }
+        eventPublisher.publishEvent(ProductLikeEvent.LikeIncrementEvent.of(product.getId(), product.getBrandUid()));
 
     }
 
@@ -68,8 +65,7 @@ public class LikeFacade {
         }
 
         likeService.unLike(user.getId(), deleteDto.productId());
-        Optional<ProductLike> productLikeForUpdate = productLikeService.getProductLike(deleteDto.productId());
-        productLikeForUpdate.ifPresent(ProductLike::decrement);
+        eventPublisher.publishEvent(ProductLikeEvent.LikeDecrementEvent.of(deleteDto.productId()));
     }
 
     @Transactional(readOnly = true)

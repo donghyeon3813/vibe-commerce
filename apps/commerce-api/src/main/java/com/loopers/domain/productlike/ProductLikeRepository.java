@@ -7,4 +7,5 @@ public interface ProductLikeRepository {
 
     ProductLike save(ProductLike productLike);
 
+    Optional<ProductLike> findByIdForUpdate(Long productUid);
 }

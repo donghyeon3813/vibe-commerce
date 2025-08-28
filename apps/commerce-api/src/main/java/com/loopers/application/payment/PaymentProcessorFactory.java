@@ -1,5 +1,6 @@
-package com.loopers.application.order;
+package com.loopers.application.payment;
 
+import com.loopers.application.order.OrderCommand;
 import com.loopers.support.error.CoreException;
 import com.loopers.support.error.ErrorType;
 import lombok.RequiredArgsConstructor;

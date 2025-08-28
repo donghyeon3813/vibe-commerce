@@ -28,10 +28,12 @@ import java.util.Optional;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
 
+
+import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
+import static org.awaitility.Awaitility.await;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 @SpringBootTest
@@ -285,7 +287,7 @@ public class LikeFacadeIntegrationTest {
             UserModel saveUser3 = userJpaRepository.save(UserModel.CreateUser("test1002", "test@test.com", Gender.MALE.name(), "2025-07-13"));
             UserModel saveUser4 = userJpaRepository.save(UserModel.CreateUser("test1003", "test@test.com", Gender.MALE.name(), "2025-07-13"));
             Product product = productJpaRepository.save(Product.create(1L, "name", 1000, 5));
-
+            productLikeJpaRepository.save(ProductLike.of(product.getId(), 0L, 1L));
             Long productUid = product.getId();
             LikeCommand.RegisterDto[] registerDtos = new LikeCommand.RegisterDto[]{
                     LikeCommand.RegisterDto.of(saveUser1.getUserId(), productUid),
@@ -314,11 +316,13 @@ public class LikeFacadeIntegrationTest {
 
             latch.await();
             executorService.shutdown();
-            executorService.awaitTermination(10, TimeUnit.SECONDS);
+            executorService.awaitTermination(5, SECONDS);
 
-            Optional<ProductLike> byId = productLikeJpaRepository.findById(productUid);
-            long resultCount = byId.get().getLikeCount();
-            assertThat(resultCount).isEqualTo(4);
+            await().atMost(5, SECONDS).untilAsserted(() -> {
+                Optional<ProductLike> updatedProductLike = productLikeJpaRepository.findById(productUid);
+                assertThat(updatedProductLike).isPresent();
+                assertThat(updatedProductLike.get().getLikeCount()).isEqualTo(4);
+            });
         }
 
         @DisplayName("좋아요 해제 요청이 발생한 횟수만큼 좋아요 수가 정확히 차감되어 조회된다.")
@@ -366,7 +370,7 @@ public class LikeFacadeIntegrationTest {
 
             latch.await();
             executorService.shutdown();
-            executorService.awaitTermination(10, TimeUnit.SECONDS);
+            executorService.awaitTermination(10, SECONDS);
 
             int resultCount = likeJpaRepository.countByProductUid(productUid);
             assertThat(resultCount).isEqualTo(0);
