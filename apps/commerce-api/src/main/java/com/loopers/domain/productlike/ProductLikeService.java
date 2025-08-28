@@ -15,6 +15,10 @@ public class ProductLikeService {
         return productLikeRepository.findById(productUid);
 
     }
+
+    public Optional<ProductLike> getProductLikeForUpdate(Long productUid) {
+        return productLikeRepository.findByIdForUpdate(productUid);
+    }
     @Transactional
     public ProductLike saveProductLike(Long productUid, long likeCount, Long brandUid) {
         return productLikeRepository.save(ProductLike.of(productUid, likeCount, brandUid));
