@@ -22,4 +22,9 @@ public class ProductLikeRepositoryImpl implements ProductLikeRepository {
         return productLikeJpaRepository.save(productLike);
     }
 
+    @Override
+    public Optional<ProductLike> findByIdForUpdate(Long productUid) {
+        return productLikeJpaRepository.findByIdForUpdate(productUid);
+    }
+
 }
