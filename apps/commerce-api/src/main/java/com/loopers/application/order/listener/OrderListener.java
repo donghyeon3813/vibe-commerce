@@ -1,5 +1,6 @@
 package com.loopers.application.order.listener;
 
+import com.loopers.application.common.event.MetricsEvent;
 import com.loopers.application.delivery.listener.DeliveryEvent;
 import com.loopers.domain.issue.CouponIssue;
 import com.loopers.domain.issue.CouponIssueService;
@@ -11,6 +12,7 @@ import com.loopers.support.error.ErrorType;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.event.TransactionPhase;
 import org.springframework.transaction.event.TransactionalEventListener;
@@ -25,6 +27,7 @@ public class OrderListener {
     private final ProductService productService;
     private final CouponIssueService couponIssueService;
     private final ApplicationEventPublisher eventPublisher;
+    private final KafkaTemplate<Object, Object> kafkaTemplate;
 
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void orderUpdate(OrderEvent.StatusUpdateEvent event) {
@@ -57,5 +60,9 @@ public class OrderListener {
         eventPublisher.publishEvent(DeliveryEvent.OrderResultEvent
                 .of(order.getUserUid(), order.getAddress(), order.getOrderStatus(),
                         order.getAmount(), order.getCouponUid(), order.getItems()));
+        order.getItems().forEach(item -> {
+            kafkaTemplate.send("catalog-events", item.getProductUid().toString(), MetricsEvent.of(item.getProductUid(), MetricsEvent.EventType.PRODUCT_SOLD_EVENT, item.getQuantity()));
+        });
+
     }
 }

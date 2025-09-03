@@ -23,6 +23,7 @@ spring:
       - redis.yml
       - logging.yml
       - monitoring.yml
+      - kafka.yml
 
 datasource:
   mysql-jpa:

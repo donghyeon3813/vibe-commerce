@@ -1,5 +1,6 @@
 package com.loopers.application.like;
 
+import com.loopers.application.common.event.MetricsEvent;
 import com.loopers.application.product.ProductInfo;
 import com.loopers.application.productLike.listener.ProductLikeEvent;
 import com.loopers.domain.brand.Brand;
@@ -10,21 +11,20 @@ import com.loopers.domain.product.Product;
 import com.loopers.domain.product.ProductData;
 import com.loopers.domain.product.ProductDetailComposer;
 import com.loopers.domain.product.ProductService;
-import com.loopers.domain.productlike.ProductLike;
-import com.loopers.domain.productlike.ProductLikeService;
 import com.loopers.domain.user.UserModel;
 import com.loopers.domain.user.UserService;
 import com.loopers.support.error.CoreException;
 import com.loopers.support.error.ErrorType;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
+
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -38,7 +38,7 @@ public class LikeFacade {
     private final BrandService brandService;
     private final ProductDetailComposer productDetailComposer;
     private final ApplicationEventPublisher eventPublisher;
-    private final ProductLikeService productLikeService;
+    private final KafkaTemplate<Object, Object> kafkaTemplate;
 
 
     @Transactional
@@ -53,7 +53,9 @@ public class LikeFacade {
 
         likeService.resist(user.getId(), registerDto.productId());
         eventPublisher.publishEvent(ProductLikeEvent.LikeIncrementEvent.of(product.getId(), product.getBrandUid()));
-
+        kafkaTemplate.send("catalog-events",
+                product.getId().toString(),
+                MetricsEvent.of(product.getId(), MetricsEvent.EventType.LIKE_EVENT, 1));
     }
 
     @Transactional
@@ -66,6 +68,9 @@ public class LikeFacade {
 
         likeService.unLike(user.getId(), deleteDto.productId());
         eventPublisher.publishEvent(ProductLikeEvent.LikeDecrementEvent.of(deleteDto.productId()));
+        kafkaTemplate.send("catalog-events",
+                deleteDto.productId().toString(),
+                MetricsEvent.of(deleteDto.productId(), MetricsEvent.EventType.UNLIKE_EVENT, -1));
     }
 
     @Transactional(readOnly = true)

@@ -4,6 +4,7 @@ dependencies {
     implementation(project(":modules:redis"))
     implementation(project(":supports:jackson"))
     implementation(project(":supports:logging"))
+    implementation(project(":modules:kafka"))
     implementation(project(":supports:monitoring"))
     // feignClient
     implementation("org.springframework.cloud:spring-cloud-starter-openfeign")
