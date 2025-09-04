@@ -1,4 +1,4 @@
-package com.loopers.interfaces.consumer;
+package com.loopers.interfaces.consumer.metrics;
 
 import com.loopers.application.metrics.MetricsCommand;
 import com.loopers.application.metrics.MetricsFacade;

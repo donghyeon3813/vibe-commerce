@@ -1,11 +1,15 @@
 package com.loopers.domain.metrics;
 
 import com.loopers.domain.BaseEntity;
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Table;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+
+import java.time.LocalDate;
+import java.time.ZonedDateTime;
 
 @Entity
 @Getter
@@ -16,6 +20,8 @@ public class ProductMetrics extends BaseEntity {
     private int likeCount;
     private int saleCount;
     private int viewCount;
+    @Column(name = "metrics_date", columnDefinition = "DATE")
+    private LocalDate metricsDate;
 
     public static ProductMetrics create(Long productId) {
         return new ProductMetrics(productId);
@@ -23,6 +29,7 @@ public class ProductMetrics extends BaseEntity {
 
     public ProductMetrics(Long productId) {
         this.productId = productId;
+        this.metricsDate = LocalDate.now();
     }
 
     public void adjustLikeCount(int count) {

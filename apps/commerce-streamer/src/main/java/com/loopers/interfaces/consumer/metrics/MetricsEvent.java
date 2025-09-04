@@ -1,4 +1,4 @@
-package com.loopers.interfaces.consumer;
+package com.loopers.interfaces.consumer.metrics;
 
 import lombok.Getter;
 import lombok.ToString;

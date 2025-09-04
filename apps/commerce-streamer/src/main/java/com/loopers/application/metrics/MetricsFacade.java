@@ -9,6 +9,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.Optional;
 
 @Component
@@ -27,8 +30,11 @@ public class MetricsFacade {
             log.info("이미 수행된 eventId: {}", command.getEventId());
             return;
         }
+
+        LocalDate today = LocalDate.now();
+
         ProductMetrics productMetrics;
-        Optional<ProductMetrics> metricsOptional = productMetricsService.findByProductId(command.getProductId());
+        Optional<ProductMetrics> metricsOptional = productMetricsService.findByProductIdAndMetricsDate(command.getProductId(),today);
         productMetrics = metricsOptional.orElseGet(() -> productMetricsService.save(command.getProductId()));
         switch (command.getEventType()){
             case LIKE_EVENT, UNLIKE_EVENT ->productMetrics.adjustLikeCount(command.getCount());

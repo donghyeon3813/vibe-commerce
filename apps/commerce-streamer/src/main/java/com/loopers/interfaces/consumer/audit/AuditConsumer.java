@@ -2,15 +2,10 @@ package com.loopers.interfaces.consumer.audit;
 
 import com.loopers.application.audit.AuditCommand;
 import com.loopers.application.audit.AuditFacade;
-import com.loopers.application.metrics.MetricsCommand;
-import com.loopers.interfaces.consumer.MetricsEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.springframework.kafka.annotation.KafkaListener;
-import org.springframework.kafka.support.KafkaHeaders;
-import org.springframework.messaging.handler.annotation.Header;
-import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.stereotype.Component;
 
 @Component
