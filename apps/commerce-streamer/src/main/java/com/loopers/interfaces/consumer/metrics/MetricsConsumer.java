@@ -14,7 +14,7 @@ import org.springframework.stereotype.Component;
 public class MetricsConsumer {
     private final MetricsFacade metricsFacade;
 
-    @KafkaListener(topics = "catalog-events", groupId = "metrics-group")
+    @KafkaListener(topics = "catalog-events", groupId = "metrics-group", concurrency = "3")
     public void consume(MetricsEvent message) {
         log.info("Consumed message: {}", message);
 

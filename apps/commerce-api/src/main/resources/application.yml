@@ -55,6 +55,11 @@ spring:
   config:
     activate:
       on-profile: local, test
+  kafka:
+    producer:
+      properties:
+        enable.idempotence: true # 중복 방지 기능
+      acks: all # 안전하게 기록
 
 ---
 spring:

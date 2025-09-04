@@ -14,7 +14,7 @@ import org.springframework.stereotype.Component;
 public class AuditConsumer {
     private final AuditFacade auditFacade;
 
-    @KafkaListener(topics = "catalog-events", groupId = "audit-group")
+    @KafkaListener(topics = {"catalog-events", "cache-evicts-events"}, groupId = "audit-group", concurrency = "3")
     public void consume(ConsumerRecord<Object, Object> messages) {
         log.info("message" + messages.toString());
 

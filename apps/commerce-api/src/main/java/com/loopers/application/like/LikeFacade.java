@@ -1,5 +1,6 @@
 package com.loopers.application.like;
 
+import com.loopers.application.common.event.CacheEvent;
 import com.loopers.application.common.event.MetricsEvent;
 import com.loopers.application.product.ProductInfo;
 import com.loopers.application.productLike.listener.ProductLikeEvent;
@@ -56,6 +57,9 @@ public class LikeFacade {
         kafkaTemplate.send("catalog-events",
                 product.getId().toString(),
                 MetricsEvent.of(product.getId(), MetricsEvent.EventType.LIKE_EVENT, 1));
+        kafkaTemplate.send("cache-evicts-events",
+                product.getId().toString(),
+                CacheEvent.create(product.getId()));
     }
 
     @Transactional
@@ -71,6 +75,9 @@ public class LikeFacade {
         kafkaTemplate.send("catalog-events",
                 deleteDto.productId().toString(),
                 MetricsEvent.of(deleteDto.productId(), MetricsEvent.EventType.UNLIKE_EVENT, -1));
+        kafkaTemplate.send("cache-evicts-events",
+                deleteDto.productId().toString(),
+                CacheEvent.create(deleteDto.productId()));
     }
 
     @Transactional(readOnly = true)
