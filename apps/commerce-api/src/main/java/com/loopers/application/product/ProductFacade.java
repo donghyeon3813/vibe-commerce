@@ -1,5 +1,6 @@
 package com.loopers.application.product;
 
+import com.loopers.application.common.event.MetricsEvent;
 import com.loopers.domain.brand.Brand;
 import com.loopers.domain.brand.BrandService;
 import com.loopers.domain.like.LikeService;
@@ -15,7 +16,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
-import org.springframework.data.jpa.domain.Specification;
+
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -30,6 +32,7 @@ public class ProductFacade {
     private final LikeService likeService;
     private final ProductDetailComposer productDetailComposer;
     private final ProductLikeService productLikeService;
+    private final KafkaTemplate<Object, Object> kafkaTemplate;
 
 @Transactional(readOnly = true)
     public ProductInfo.ProductListInfo getProductList(ProductCommand.ListInfoRequest productCommand) {
@@ -61,6 +64,9 @@ public class ProductFacade {
         if (productLike.isPresent()) {
             count = (int) productLike.get().getLikeCount();
         }
+        kafkaTemplate.send("catalog-events",
+                product.getId().toString(),
+                MetricsEvent.of(product.getId(), MetricsEvent.EventType.PRODUCT_VIEW_EVENT, 1));
         return ProductInfo.ProductDetailInfo.from(productDetailComposer.compose(product, brand, count));
     }
 }

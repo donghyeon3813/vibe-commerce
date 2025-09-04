@@ -1,0 +1,19 @@
+### like
+POST {{commerce-api}}/api/v1/likes
+Content-Type: application/json
+X-USER-ID: user001
+
+{
+  "productId": 1001
+}
+
+### unlike
+DELETE {{commerce-api}}/api/v1/likes
+Content-Type: application/json
+X-USER-ID: user001
+
+{
+  "productId": 1001
+}
+
+
