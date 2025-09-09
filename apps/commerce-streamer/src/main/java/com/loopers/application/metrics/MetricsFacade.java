@@ -10,7 +10,10 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
-import java.util.Optional;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Component
 @RequiredArgsConstructor
@@ -21,25 +24,39 @@ public class MetricsFacade {
     private final EventHandleLogService eventHandleService;
 
     @Transactional
-    public void aggregate(MetricsCommand.Adjust command) {
+    public void aggregate(List<MetricsCommand.Adjust> commands) {
+        if (commands.isEmpty()) return;
 
-        Optional<EventHandleLog> byEventId = eventHandleService.findByEventId(command.getEventId(), command.getConsumer());
-        if (byEventId.isPresent()) {
-            log.info("이미 수행된 eventId: {}", command.getEventId());
-            return;
-        }
+        Set<String> eventIds = commands.stream()
+                .map(MetricsCommand.Adjust::getEventId)
+                .collect(Collectors.toSet());
+
+        String consumer = commands.get(0).getConsumer(); // 동일 consumer 전제
+        List<EventHandleLog> processedLogs =
+                eventHandleService.findByEventIdsAndConsumer(eventIds, consumer);
+
+        Set<String> processedEventIds = processedLogs.stream()
+                .map(EventHandleLog::getEventId)
+                .collect(Collectors.toSet());
 
         LocalDate today = LocalDate.now();
 
-        ProductMetrics productMetrics;
-        Optional<ProductMetrics> metricsOptional = productMetricsService.findByProductIdAndMetricsDate(command.getProductId(),today);
-        productMetrics = metricsOptional.orElseGet(() -> productMetricsService.save(command.getProductId()));
-        switch (command.getEventType()){
-            case LIKE_EVENT, UNLIKE_EVENT ->productMetrics.adjustLikeCount(command.getCount());
-            case PRODUCT_SOLD_EVENT -> productMetrics.incrementSaleCount(command.getCount());
-            case PRODUCT_VIEW_EVENT -> productMetrics.incrementViewCount(command.getCount());
+        for (MetricsCommand.Adjust command : commands) {
+            if (processedEventIds.contains(command.getEventId())) {
+                continue; // 이미 처리된 이벤트는 skip
+            }
 
+            ProductMetrics metrics = productMetricsService
+                    .findByProductIdAndMetricsDate(command.getProductId(), today)
+                    .orElseGet(() -> productMetricsService.save(command.getProductId()));
+
+            switch (command.getEventType()) {
+                case LIKE_EVENT, UNLIKE_EVENT -> metrics.adjustLikeCount(command.getCount());
+                case PRODUCT_SOLD_EVENT -> metrics.incrementSaleCount(command.getCount());
+                case PRODUCT_VIEW_EVENT -> metrics.incrementViewCount(command.getCount());
+            }
+
+            eventHandleService.save(command.getEventId(), command.getConsumer());
         }
-        eventHandleService.save(command.getEventId(), command.getConsumer());
     }
 }
