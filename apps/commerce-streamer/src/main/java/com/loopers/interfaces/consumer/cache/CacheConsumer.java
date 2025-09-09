@@ -5,6 +5,8 @@ import com.loopers.application.cache.CacheFacade;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.annotation.KafkaListener;
+import org.springframework.kafka.support.KafkaHeaders;
+import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -17,7 +19,7 @@ public class CacheConsumer {
     public void consume(CacheEvent message) {
         log.info("Consumed message: {}", message);
         CacheCommand.EvictCache evictCache = CacheCommand.EvictCache
-                .create(message.getEventId(), message.getProductId());
+                .create(message.getEventId(), message.getProductId(), "CacheConsumer");
         cacheFacade.evict(evictCache);
     }
 }

@@ -18,12 +18,12 @@ public class CacheFacade {
     private final CacheService cacheService;
 
     public void evict(CacheCommand.EvictCache command) {
-        Optional<EventHandleLog> byEventId = eventHandleService.findByEventId(command.getEventId());
+        Optional<EventHandleLog> byEventId = eventHandleService.findByEventId(command.getEventId(), command.getConsumer());
         if (byEventId.isPresent()) {
             log.info("이미 수행된 eventId: {}", command.getEventId());
             return;
         }
         cacheService.EvictProductCache(command);
-
+        eventHandleService.save(command.getEventId(), command.getConsumer());
     }
 }

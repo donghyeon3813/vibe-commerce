@@ -12,8 +12,8 @@ import java.util.Optional;
 public class EventHandleLogRepositoryImpl implements EventHandleLogRepository {
     private final EventHandleLogJpaRepository repository;
     @Override
-    public Optional<EventHandleLog> findByEventId(String eventId) {
-        return repository.findByEventId(eventId);
+    public Optional<EventHandleLog> findByEventIdAndConsumer(String eventId, String topic) {
+        return repository.findByEventIdAndTopic(eventId, topic);
     }
 
     @Override

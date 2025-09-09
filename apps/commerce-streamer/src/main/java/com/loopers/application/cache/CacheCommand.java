@@ -7,14 +7,16 @@ public class CacheCommand {
     public static class EvictCache{
         private String eventId;
         private Long productId;
+        private String consumer;
 
-        public static EvictCache create(String eventId, Long productId){
-            return new EvictCache(eventId, productId);
+        public static EvictCache create(String eventId, Long productId, String consumer){
+            return new EvictCache(eventId, productId, consumer);
         }
 
-        public EvictCache(String eventId, Long productId) {
+        public EvictCache(String eventId, Long productId, String consumer) {
             this.eventId = eventId;
             this.productId = productId;
+            this.consumer = consumer;
         }
 
     }

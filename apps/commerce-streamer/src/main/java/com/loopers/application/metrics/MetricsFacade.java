@@ -10,8 +10,6 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
-import java.time.ZoneId;
-import java.time.ZonedDateTime;
 import java.util.Optional;
 
 @Component
@@ -25,7 +23,7 @@ public class MetricsFacade {
     @Transactional
     public void aggregate(MetricsCommand.Adjust command) {
 
-        Optional<EventHandleLog> byEventId = eventHandleService.findByEventId(command.getEventId());
+        Optional<EventHandleLog> byEventId = eventHandleService.findByEventId(command.getEventId(), command.getConsumer());
         if (byEventId.isPresent()) {
             log.info("이미 수행된 eventId: {}", command.getEventId());
             return;
@@ -42,6 +40,6 @@ public class MetricsFacade {
             case PRODUCT_VIEW_EVENT -> productMetrics.incrementViewCount(command.getCount());
 
         }
-        eventHandleService.save(command.getEventId());
+        eventHandleService.save(command.getEventId(), command.getConsumer());
     }
 }

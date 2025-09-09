@@ -10,12 +10,12 @@ import java.util.Optional;
 public class EventHandleLogService {
     private final EventHandleLogRepository eventHandleLogRepository;
 
-    public Optional<EventHandleLog> findByEventId(String eventId) {
-        return eventHandleLogRepository.findByEventId(eventId);
+    public Optional<EventHandleLog> findByEventId(String eventId, String consumer) {
+        return eventHandleLogRepository.findByEventIdAndConsumer(eventId, consumer);
     }
 
-    public void save(String eventId) {
-        EventHandleLog eventHandleLog = EventHandleLog.of(eventId);
+    public void save(String eventId, String topic) {
+        EventHandleLog eventHandleLog = EventHandleLog.of(eventId, topic);
         eventHandleLogRepository.save(eventHandleLog);
     }
 }

@@ -13,12 +13,14 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class EventHandleLog extends BaseEntity {
     private String eventId;
+    private String topic;
 
-    public static EventHandleLog of(String eventId) {
-        return new EventHandleLog(eventId);
+    public static EventHandleLog of(String eventId, String topic) {
+        return new EventHandleLog(eventId, topic);
     }
 
-    private EventHandleLog(String eventId) {
+    private EventHandleLog(String eventId, String topic) {
         this.eventId = eventId;
+        this.topic = topic;
     }
 }
