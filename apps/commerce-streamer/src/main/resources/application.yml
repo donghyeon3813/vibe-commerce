@@ -9,6 +9,7 @@ server:
     accept-count: 100 # 대기 큐 크기 (default : 100)
     keep-alive-timeout: 60s # 60s
   max-http-request-header-size: 8KB
+  port: 8090
 
 spring:
   main:
@@ -21,34 +22,15 @@ spring:
     import:
       - jpa.yml
       - redis.yml
+      - kafka.yml
       - logging.yml
       - monitoring.yml
-      - kafka.yml
 
-springdoc:
-  use-fqn: true
-  swagger-ui:
-    path: /swagger-ui.html
-resilience4j:
-  retry:
-    instances:
-      pgRetry:
-        max-attempts: 2
-        wait-duration: 200ms
-        retry-exceptions:
-          - feign.RetryableException
-          - feign.FeignException.InternalServerError
-          - java.net.SocketTimeoutException
-        fail-after-max-attempts: true
-  circuitbreaker:
-    instances:
-      pgCircuit:
-        sliding-window-size: 10
-        failure-rate-threshold: 50
-        wait-duration-in-open-state: 2s
-        permitted-number-of-calls-in-half-open-state: 2
-        slow-call-duration-threshold: 2s #timeout이 3초기 떄문에 2초일때는 느린 호출로 간주
-        slow-call-rate-threshold: 50
+
+
+demo-kafka:
+  test:
+    topic-name: demo.internal.topic-v1
 
 ---
 spring:
@@ -56,11 +38,17 @@ spring:
     activate:
       on-profile: local, test
   kafka:
-    producer:
+    consumer:
+      auto-offset-reset: latest
       properties:
-        enable.idempotence: true # 중복 방지 기능
-      acks: all # 안전하게 기록
+        enable-auto-commit: true
 
+server:
+  port: 8090
+
+management:
+  server:
+    port: 8091
 ---
 spring:
   config:
@@ -82,3 +70,4 @@ spring:
 springdoc:
   api-docs:
     enabled: false
+

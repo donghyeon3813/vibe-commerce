@@ -28,9 +28,11 @@ Root
 ├── apps ( spring-applications )
 │   └── 📦 commerce-api
 │   └── 📦 pg-simulator
+│   └── 📦 commerce-streamer
 ├── modules ( reusable-configurations )
 │   └── 📦 jpa
 │   └── 📦 redis
+│   └── 📦 kafka
 └── supports ( add-ons )
     ├── 📦 monitoring
     └── 📦 logging
