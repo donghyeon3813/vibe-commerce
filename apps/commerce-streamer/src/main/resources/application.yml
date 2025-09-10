@@ -41,7 +41,7 @@ spring:
     consumer:
       auto-offset-reset: latest
       properties:
-        enable-auto-commit: true
+        enable-auto-commit: false
 
 server:
   port: 8090

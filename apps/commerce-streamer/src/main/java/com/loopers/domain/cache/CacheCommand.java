@@ -1,4 +1,4 @@
-package com.loopers.application.cache;
+package com.loopers.domain.cache;
 
 import lombok.Getter;
 
