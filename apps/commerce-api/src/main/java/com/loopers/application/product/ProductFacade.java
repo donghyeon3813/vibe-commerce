@@ -10,6 +10,7 @@ import com.loopers.domain.product.ProductDetailComposer;
 import com.loopers.domain.product.ProductService;
 import com.loopers.domain.productlike.ProductLike;
 import com.loopers.domain.productlike.ProductLikeService;
+import com.loopers.domain.ranking.RankingService;
 import com.loopers.support.error.CoreException;
 import com.loopers.support.error.ErrorType;
 import lombok.RequiredArgsConstructor;
@@ -33,6 +34,7 @@ public class ProductFacade {
     private final ProductDetailComposer productDetailComposer;
     private final ProductLikeService productLikeService;
     private final KafkaTemplate<Object, Object> kafkaTemplate;
+    private final RankingService rankingService;
 
 @Transactional(readOnly = true)
     public ProductInfo.ProductListInfo getProductList(ProductCommand.ListInfoRequest productCommand) {
@@ -64,9 +66,11 @@ public class ProductFacade {
         if (productLike.isPresent()) {
             count = (int) productLike.get().getLikeCount();
         }
+        String rank = rankingService.getProductRank(product.getId());
+
         kafkaTemplate.send("catalog-events",
                 product.getId().toString(),
                 MetricsEvent.of(product.getId(), MetricsEvent.EventType.PRODUCT_VIEW_EVENT, 1));
-        return ProductInfo.ProductDetailInfo.from(productDetailComposer.compose(product, brand, count));
+        return ProductInfo.ProductDetailInfo.from(productDetailComposer.compose(product, brand, count), rank);
     }
 }

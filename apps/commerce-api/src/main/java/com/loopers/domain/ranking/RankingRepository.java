@@ -6,5 +6,7 @@ import com.loopers.infrastructure.ranking.RankingDto;
 import java.util.List;
 
 public interface RankingRepository {
-    public List<RankingDto> getRanKingList(RankingCommand.Get command);
+    List<RankingDto> getRanKingList(RankingCommand.Get command);
+
+    List<RankingDto> getTodayRanKingList();
 }

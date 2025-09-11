@@ -18,4 +18,9 @@ public class RankingRepositoryImpl implements RankingRepository {
 
         return repository.getRanKingList(command);
     }
+
+    @Override
+    public List<RankingDto> getTodayRanKingList() {
+        return repository.getTodayRanKingList();
+    }
 }

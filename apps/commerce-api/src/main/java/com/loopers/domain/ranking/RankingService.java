@@ -15,4 +15,15 @@ public class RankingService {
     public List<RankingDto> getRanKingList(RankingCommand.Get command) {
         return rankingRepository.getRanKingList(command);
     }
+
+    public String getProductRank(Long id) {
+        List<RankingDto> ranKingList = rankingRepository.getTodayRanKingList();
+
+        for (int i = 0; i < ranKingList.size(); i++) {
+            if (ranKingList.get(i).getProductId().equals(id)) {
+                return String.valueOf(i + 1);
+            }
+        }
+        return "-";
+    }
 }
