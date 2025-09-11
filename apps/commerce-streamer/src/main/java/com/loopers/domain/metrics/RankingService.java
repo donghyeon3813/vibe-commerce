@@ -12,4 +12,8 @@ public class RankingService {
     public void updateRanking(Map<Long, Double> rankingScores) {
         rankingRepository.updateRanking(rankingScores);
     }
+
+    public void carryOverRanking() {
+        rankingRepository.carryOverRanking();
+    }
 }

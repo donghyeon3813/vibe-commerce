@@ -20,4 +20,16 @@ public class RankingRepositoryImpl implements com.loopers.domain.metrics.Ranking
         String key = "ranking:all:"+dateKey;
         rankingRepository.updateRankingScores(key, rankingScores);
     }
+
+    @Override
+    public void carryOverRanking() {
+
+        LocalDate today = LocalDate.now();
+        LocalDate tomorrow = today.plusDays(1);
+
+        String todayKey = "ranking:all:" + today.format(DateTimeFormatter.BASIC_ISO_DATE);
+        String tomorrowKey = "ranking:all:" + tomorrow.format(DateTimeFormatter.BASIC_ISO_DATE);
+
+        rankingRepository.carryOver(todayKey, tomorrowKey, 0.1);
+    }
 }
