@@ -1,4 +1,4 @@
-package com.loopers.infrastructure;
+package com.loopers.infrastructure.matrics;
 
 import com.loopers.domain.metrics.ProductMetrics;
 import org.springframework.data.jpa.repository.JpaRepository;

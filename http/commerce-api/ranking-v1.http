@@ -1,0 +1,2 @@
+### 랭킹 Get API
+GET {{commerce-api}}/api/v1/rankings?date=20250911&size=10&page=1
