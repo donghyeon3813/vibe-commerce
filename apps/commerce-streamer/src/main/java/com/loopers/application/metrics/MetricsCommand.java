@@ -9,15 +9,17 @@ public class MetricsCommand {
         private Long productId;
         private EventType eventType;
         private int count;
-        public static Adjust of(String eventId, Long productId, EventType eventType, int count) {
-            return new Adjust(eventId, productId, eventType, count);
+        private String consumer;
+        public static Adjust of(String eventId, Long productId, EventType eventType, int count, String consumer) {
+            return new Adjust(eventId, productId, eventType, count, consumer);
         }
 
-        public Adjust(String eventId, Long productId, EventType eventType, int count) {
+        public Adjust(String eventId, Long productId, EventType eventType, int count, String consumer) {
             this.eventId = eventId;
             this.productId = productId;
             this.eventType = eventType;
             this.count = count;
+            this.consumer = consumer;
         }
         public enum EventType {
             LIKE_EVENT,

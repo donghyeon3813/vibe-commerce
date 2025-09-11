@@ -6,6 +6,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.springframework.kafka.annotation.KafkaListener;
+import org.springframework.kafka.support.Acknowledgment;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -15,7 +16,7 @@ public class AuditConsumer {
     private final AuditFacade auditFacade;
 
     @KafkaListener(topics = {"catalog-events", "cache-evicts-events"}, groupId = "audit-group", concurrency = "3")
-    public void consume(ConsumerRecord<Object, Object> messages) {
+    public void consume(ConsumerRecord<Object, Object> messages, Acknowledgment acknowledgment) {
         log.info("message" + messages.toString());
 
         AuditCommand.SaveAudit saveAudit = AuditCommand.SaveAudit.of(
@@ -26,6 +27,6 @@ public class AuditConsumer {
                 messages.value().toString(),
                 messages.timestamp());
         auditFacade.save(saveAudit);
-
+        acknowledgment.acknowledge();
     }
 }

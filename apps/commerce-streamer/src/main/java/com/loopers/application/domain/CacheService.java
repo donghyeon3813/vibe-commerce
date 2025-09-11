@@ -1,8 +1,10 @@
 package com.loopers.application.domain;
 
-import com.loopers.application.cache.CacheCommand;
+import com.loopers.domain.cache.CacheCommand;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
+
+import java.util.Map;
 
 @Component
 @RequiredArgsConstructor
