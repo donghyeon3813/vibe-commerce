@@ -1,0 +1,39 @@
+spring:
+  profiles:
+    active: local
+  config:
+    import:
+      - jpa.yml
+
+---
+spring:
+  config:
+    activate:
+      on-profile: local, test
+  kafka:
+    producer:
+      properties:
+        enable.idempotence: true # ?? ?? ??
+      acks: all # ???? ??
+
+---
+spring:
+  config:
+    activate:
+      on-profile: dev
+
+---
+spring:
+  config:
+    activate:
+      on-profile: qa
+
+---
+spring:
+  config:
+    activate:
+      on-profile: prd
+
+springdoc:
+  api-docs:
+    enabled: false

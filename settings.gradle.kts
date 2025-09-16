@@ -4,6 +4,7 @@ include(
     ":apps:commerce-api",
     ":apps:pg-simulator",
     ":apps:commerce-streamer",
+    ":apps:commerce-batch",
     ":modules:jpa",
     ":modules:redis",
     ":modules:kafka",
@@ -32,3 +33,5 @@ pluginManagement {
         }
     }
 }
+include("apps:commerce-batch")
+findProject(":apps:commerce-batch")?.name = "commerce-batch"

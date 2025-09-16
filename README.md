@@ -29,6 +29,7 @@ Root
 │   └── 📦 commerce-api
 │   └── 📦 pg-simulator
 │   └── 📦 commerce-streamer
+│   └── 📦 commerce-batch
 ├── modules ( reusable-configurations )
 │   └── 📦 jpa
 │   └── 📦 redis
