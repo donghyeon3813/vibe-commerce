@@ -10,11 +10,9 @@ spring:
   config:
     activate:
       on-profile: local, test
-  kafka:
-    producer:
-      properties:
-        enable.idempotence: true # ?? ?? ??
-      acks: all # ???? ??
+  batch:
+    jdbc:
+      initialize-schema: always
 
 ---
 spring:
