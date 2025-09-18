@@ -1,7 +1,7 @@
 package com.loopers.config;
 
-import com.loopers.domain.MvProductRankWeekly;
-import com.loopers.infrastructure.MvProductRankRepository;
+import com.loopers.domain.MvProductRankMonthly;
+import com.loopers.infrastructure.MvProductRankMonthlyRepository;
 import jakarta.persistence.EntityManagerFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.batch.core.Job;
@@ -10,7 +10,6 @@ import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.batch.core.job.builder.JobBuilder;
 import org.springframework.batch.core.repository.JobRepository;
 import org.springframework.batch.core.step.builder.StepBuilder;
-
 import org.springframework.batch.item.ItemWriter;
 import org.springframework.batch.item.database.JpaPagingItemReader;
 import org.springframework.batch.item.database.builder.JpaPagingItemReaderBuilder;
@@ -23,23 +22,24 @@ import java.util.Map;
 
 @Configuration
 @RequiredArgsConstructor
-public class WeeklyRankConfig {
-    private final MvProductRankRepository mvProductRankRepository;
+public class MonthlyRankConfig {
+
+    private final MvProductRankMonthlyRepository mvProductRankMonthlyRepository;
 
     @Bean
-    public Job weeklyRankJob(JobRepository jobRepository, Step weeklyRankingStep) {
-        return new JobBuilder("weeklyRankingJob", jobRepository)
-                .start(weeklyRankingStep)
+    public Job monthlyRankJob(JobRepository jobRepository, Step monthlyRankingStep) {
+        return new JobBuilder("monthlyRankingJob", jobRepository)
+                .start(monthlyRankingStep)
                 .build();
     }
 
     @Bean
-    public Step weeklyRankingStep(JobRepository jobRepository,
-                                  PlatformTransactionManager tx,
-                                  JpaPagingItemReader<MvProductRankWeekly> reader,
-                                  ItemWriter<MvProductRankWeekly> writer) {
-        return new StepBuilder("weeklyRankingStep", jobRepository)
-                .<MvProductRankWeekly, MvProductRankWeekly>chunk(100, tx)
+    public Step monthlyRankingStep(JobRepository jobRepository,
+                                   PlatformTransactionManager tx,
+                                   JpaPagingItemReader<MvProductRankMonthly> reader,
+                                   ItemWriter<MvProductRankMonthly> writer) {
+        return new StepBuilder("monthlyRankingStep", jobRepository)
+                .<MvProductRankMonthly, MvProductRankMonthly>chunk(100, tx)
                 .reader(reader)
                 .writer(writer)
                 .build();
@@ -47,12 +47,12 @@ public class WeeklyRankConfig {
 
     @Bean
     @StepScope
-    public JpaPagingItemReader<MvProductRankWeekly> weeklyReader(EntityManagerFactory emf) {
+    public JpaPagingItemReader<MvProductRankMonthly> monthlyReader(EntityManagerFactory emf) {
         LocalDate endDate = LocalDate.now();
-        LocalDate startDate = endDate.minusDays(6);
+        LocalDate startDate = endDate.minusDays(29); // 최근 30일 집계
 
         String jpql = """
-        SELECT new com.loopers.domain.MvProductRankWeekly(
+        SELECT new com.loopers.domain.MvProductRankMonthly(
             p.productId,
             :targetDate,
             SUM(p.likeCount * 0.2 + p.viewCount * 0.1 + p.saleCount * 0.7)
@@ -62,8 +62,8 @@ public class WeeklyRankConfig {
         GROUP BY p.productId
     """;
 
-        return new JpaPagingItemReaderBuilder<MvProductRankWeekly>()
-                .name("weeklyReader")
+        return new JpaPagingItemReaderBuilder<MvProductRankMonthly>()
+                .name("monthlyReader")
                 .entityManagerFactory(emf)
                 .pageSize(200)
                 .queryString(jpql)
@@ -77,8 +77,7 @@ public class WeeklyRankConfig {
 
     @Bean
     @StepScope
-    public ItemWriter<MvProductRankWeekly> weeklyWriter() {
-        return mvProductRankRepository::saveAll;
+    public ItemWriter<MvProductRankMonthly> monthlyWriter() {
+        return mvProductRankMonthlyRepository::saveAll;
     }
-
 }
