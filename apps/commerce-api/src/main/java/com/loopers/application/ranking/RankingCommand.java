@@ -14,8 +14,9 @@ public class RankingCommand {
         private String date;
         private int size;
         private int page;
+        private Period period;
 
-        public Get(String date, int size, int page) {
+        public Get(String date, int size, int page, Period period) {
             if (!isValidDate(date)) {
                 throw new CoreException(ErrorType.BAD_REQUEST, ErrorType.BAD_REQUEST.getMessage());
             }
@@ -28,10 +29,12 @@ public class RankingCommand {
             this.date = date;
             this.size = size;
             this.page = page;
+            this.period = period;
+
         }
 
-        public static Get of(String date, int size, int page) {
-            return new Get(date, size, page);
+        public static Get of(String date, int size, int page, String period) {
+            return new Get(date, size, page, Period.getPeriod(period));
         }
         public static boolean isValidDate(String date) {
             try {
@@ -40,6 +43,13 @@ public class RankingCommand {
                 return true;
             } catch (DateTimeParseException e) {
                 return false;
+            }
+        }
+        public enum Period {
+            DAILY, WEEKLY, MONTHLY;
+
+            public static Period getPeriod(String period) {
+                return Period.valueOf(period);
             }
         }
     }

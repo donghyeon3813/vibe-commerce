@@ -25,9 +25,13 @@ public class RankingFacade {
 
     public RankingInfo.RankingList getRanKingList(RankingCommand.Get command) {
         // 1. Redis에서 랭킹 데이터 가져오기
-        List<RankingDto> rankingList = rankingService.getRanKingList(command);
-        
-
+        List<RankingDto> rankingList = new ArrayList<>();
+        switch (command.getPeriod()){
+            case DAILY -> rankingList = rankingService.getRanKingList(command);
+            case WEEKLY -> rankingList = rankingService.getWeeklyRanKingList(command);
+            case MONTHLY -> rankingList = rankingService.getMontlhyRanKingList(command);
+        }
+        System.out.println("rankingList.size() = " + rankingList.size());
         if (rankingList.isEmpty()) {
             return new RankingInfo.RankingList(Collections.emptyList());
         }

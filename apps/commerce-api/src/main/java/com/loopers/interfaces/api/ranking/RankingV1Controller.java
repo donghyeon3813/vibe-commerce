@@ -18,9 +18,9 @@ public class RankingV1Controller implements RankingV1ApiSpec{
     private final RankingFacade rankingFacade;
     @Override
     @GetMapping
-    public ApiResponse<RankingV1Dto.RankingListResponse> getProducts(String date, int size, int page) {
+    public ApiResponse<RankingV1Dto.RankingListResponse> getProducts(String date, int size, int page, String period) {
 
-        RankingInfo.RankingList ranKingList = rankingFacade.getRanKingList(RankingCommand.Get.of(date, size, page));
+        RankingInfo.RankingList ranKingList = rankingFacade.getRanKingList(RankingCommand.Get.of(date, size, page, period));
         RankingV1Dto.RankingListResponse response = RankingV1Dto.RankingListResponse.from(ranKingList);
         return ApiResponse.success(response);
     }
