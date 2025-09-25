@@ -1,0 +1,37 @@
+spring:
+  profiles:
+    active: local
+  config:
+    import:
+      - jpa.yml
+
+---
+spring:
+  config:
+    activate:
+      on-profile: local, test
+  batch:
+    jdbc:
+      initialize-schema: always
+
+---
+spring:
+  config:
+    activate:
+      on-profile: dev
+
+---
+spring:
+  config:
+    activate:
+      on-profile: qa
+
+---
+spring:
+  config:
+    activate:
+      on-profile: prd
+
+springdoc:
+  api-docs:
+    enabled: false

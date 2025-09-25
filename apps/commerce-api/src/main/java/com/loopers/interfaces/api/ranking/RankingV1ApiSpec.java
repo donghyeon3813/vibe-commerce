@@ -11,5 +11,5 @@ public interface RankingV1ApiSpec {
             summary = "랭킹 페이지 조회",
             description = "date, size, page를 통 랭킹 page를 조회해옵니다."
     )
-    ApiResponse<RankingV1Dto.RankingListResponse> getProducts(String date, int size, int page);
+    ApiResponse<RankingV1Dto.RankingListResponse> getProducts(String date, int size, int page, String period);
 }
